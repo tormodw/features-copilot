@@ -11,10 +11,14 @@
 #include "Light.h"
 #include "Curtain.h"
 #include "EVCharger.h"
+#include "MLPredictor.h"
+#include "DayAheadOptimizer.h"
+#include "HistoricalDataGenerator.h"
 #include <iostream>
 #include <memory>
 #include <thread>
 #include <chrono>
+#include <ctime>
 
 int main() {
     std::cout << "=== Home Automation System Starting ===" << std::endl << std::endl;
@@ -66,6 +70,38 @@ int main() {
     optimizer->setTargetTemperature(22.0);
 
     std::cout << "Energy optimizer configured" << std::endl << std::endl;
+
+    // Setup ML-based day-ahead optimization
+    std::cout << "=== Initializing ML Day-Ahead Optimizer ===" << std::endl;
+    
+    // Create ML predictor
+    auto mlPredictor = std::make_shared<MLPredictor>();
+    
+    // Generate and train with historical data
+    std::cout << "Generating historical data for training..." << std::endl;
+    auto historicalData = HistoricalDataGenerator::generateSampleData(30);
+    std::cout << "Training ML model with " << historicalData.size() << " data points..." << std::endl;
+    mlPredictor->train(historicalData);
+    std::cout << "ML model trained successfully" << std::endl;
+    
+    // Create day-ahead optimizer
+    auto dayAheadOptimizer = std::make_shared<DayAheadOptimizer>(mlPredictor);
+    dayAheadOptimizer->addAppliance(heater);
+    dayAheadOptimizer->addAppliance(ac);
+    dayAheadOptimizer->addAppliance(evCharger);
+    dayAheadOptimizer->setTargetTemperature(22.0);
+    dayAheadOptimizer->setEVChargingHoursNeeded(4);
+    
+    // Generate day-ahead schedule
+    std::time_t now = std::time(nullptr);
+    std::tm* localTime = std::localtime(&now);
+    int currentHour = localTime->tm_hour;
+    int currentDayOfWeek = localTime->tm_wday;
+    
+    auto schedule = dayAheadOptimizer->generateSchedule(currentHour, currentDayOfWeek);
+    dayAheadOptimizer->printSchedule(schedule);
+    
+    std::cout << "Day-ahead optimizer configured" << std::endl << std::endl;
 
     // Setup MQTT subscriptions for sensors
     // In production, these would parse real MQTT payloads and update sensors
@@ -140,6 +176,8 @@ int main() {
     std::cout << "✓ Energy Cost Optimization" << std::endl;
     std::cout << "✓ Temperature Maintenance" << std::endl;
     std::cout << "✓ Modular and Extensible Design" << std::endl;
+    std::cout << "✓ Machine Learning-Based Day-Ahead Optimization" << std::endl;
+    std::cout << "✓ Predictive Scheduling for Cost Reduction" << std::endl;
 
     // Cleanup
     mqttClient->disconnect();
