@@ -49,9 +49,9 @@ struct HourlyForecast {
    - Score = -energyCost + (solarProduction × 0.1)
 
 2. **HVAC Pre-conditioning**:
-   - Pre-heat during low-cost hours (cost < $0.10/kWh)
+   - Preheat during low-cost hours (cost < $0.10/kWh)
    - Minimize usage during high-cost hours (cost > $0.15/kWh)
-   - Target temperature +1°C during pre-heating
+   - Target temperature +1°C during preheating
 
 3. **Load Shifting**:
    - Defer non-critical loads to low-cost periods

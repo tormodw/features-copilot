@@ -112,7 +112,7 @@ The system automatically:
 **Scenario 1: ML Day-Ahead Optimization**
 - ML predicts energy costs will be high from 7am-10pm
 - System schedules EV charging for 4 optimal hours (10am-1pm when solar is high)
-- Pre-heats home during low-cost night hours (0am-6am)
+- Preheats home during low-cost night hours (0am-6am)
 - Minimizes HVAC during predicted high-cost periods
 - Estimated daily cost: $11.67 for 60 kWh consumption
 
@@ -136,7 +136,7 @@ The system automatically:
 ```
 Hour 0:00-6:00 (Night - Low Cost)
   - EV Charger: Defer (not optimal)
-  - Heater: Pre-heat to 23°C (save on peak hours)
+  - Heater: Preheat to 23°C (save on peak hours)
 
 Hour 10:00-13:00 (Midday - High Solar)
   - EV Charger: Charge at 11kW (optimal hours)
@@ -144,7 +144,7 @@ Hour 10:00-13:00 (Midday - High Solar)
 
 Hour 7:00-22:00 (Day - High Cost)
   - HVAC: Minimize usage
-  - Use pre-heated/cooled thermal mass
+  - Use preheated/cooled thermal mass
 ```
 
 ## Extensibility

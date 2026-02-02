@@ -4,12 +4,19 @@
 #include "MLPredictor.h"
 #include <vector>
 #include <cmath>
+#include <random>
 
 class HistoricalDataGenerator {
 public:
     // Generate synthetic historical data for training
     static std::vector<HistoricalDataPoint> generateSampleData(int numDays = 30) {
         std::vector<HistoricalDataPoint> data;
+        
+        // Use modern C++ random number generation
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<> variationDist(-10.0, 10.0);
+        std::uniform_real_distribution<> weatherDist(-30.0, 30.0);
         
         for (int day = 0; day < numDays; day++) {
             int dayOfWeek = day % 7;
@@ -38,7 +45,7 @@ public:
                 }
                 
                 // Add some random variation (+/- 10%)
-                double variation = (rand() % 20 - 10) / 100.0;
+                double variation = variationDist(gen) / 100.0;
                 point.energyCost *= (1.0 + variation);
                 
                 // Solar production: follows sine curve during daylight
@@ -47,7 +54,7 @@ public:
                     point.solarProduction = 8.0 * std::sin(angle);
                     
                     // Add weather variation (+/- 30%)
-                    double weatherVar = (rand() % 60 - 30) / 100.0;
+                    double weatherVar = weatherDist(gen) / 100.0;
                     point.solarProduction *= (1.0 + weatherVar);
                     
                     if (point.solarProduction < 0) point.solarProduction = 0;
