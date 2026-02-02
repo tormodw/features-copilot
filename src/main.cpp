@@ -67,21 +67,14 @@ int main() {
 
     std::cout << "Energy optimizer configured" << std::endl << std::endl;
 
-    // Simulate MQTT subscriptions for sensors
+    // Setup MQTT subscriptions for sensors
+    // In production, these would parse real MQTT payloads and update sensors
     mqttClient->subscribe("sensor/temperature/indoor", 
-        [&](const std::string& topic, const std::string& payload) {
-            // Parse temperature from payload and update sensor
-        });
-    
+        [&](const std::string&, const std::string&) {});
     mqttClient->subscribe("sensor/temperature/outdoor",
-        [&](const std::string& topic, const std::string& payload) {
-            // Parse temperature from payload and update sensor
-        });
-
+        [&](const std::string&, const std::string&) {});
     mqttClient->subscribe("sensor/solar/production",
-        [&](const std::string& topic, const std::string& payload) {
-            // Parse production data and update sensor
-        });
+        [&](const std::string&, const std::string&) {});
 
     std::cout << "=== Starting simulation ===" << std::endl << std::endl;
 

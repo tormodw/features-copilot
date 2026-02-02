@@ -113,7 +113,7 @@ private:
                 } 
                 // Resume charging if cost is low or solar production is sufficient
                 else if (currentEnergyCost_ <= lowCostThreshold_ || 
-                         solarProduction_ >= evCharger->getMaxChargePower()) {
+                         solarProduction_ >= evCharger->getChargePower()) {
                     if (!evCharger->isOn()) {
                         std::cout << "Resuming EV charging: Favorable conditions" << std::endl;
                         evCharger->turnOn();
