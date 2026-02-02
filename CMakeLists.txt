@@ -11,6 +11,25 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Add executable
 add_executable(home_automation
     src/main.cpp
+    src/Appliance.cpp
+    src/Light.cpp
+    src/Heater.cpp
+    src/AirConditioner.cpp
+    src/Curtain.cpp
+    src/EVCharger.cpp
+    src/Sensor.cpp
+    src/TemperatureSensor.cpp
+    src/EnergyMeter.cpp
+    src/SolarSensor.cpp
+    src/EVChargerSensor.cpp
+    src/Event.cpp
+    src/EventManager.cpp
+    src/MQTTClient.cpp
+    src/HTTPClient.cpp
+    src/EnergyOptimizer.cpp
+    src/MLPredictor.cpp
+    src/DayAheadOptimizer.cpp
+    src/HistoricalDataGenerator.cpp
 )
 
 # Enable warnings

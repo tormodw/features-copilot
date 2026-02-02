@@ -5,32 +5,14 @@
 
 class Heater : public Appliance {
 public:
-    Heater(const std::string& id, const std::string& name, double power)
-        : Appliance(id, name), isOn_(false), targetTemp_(22.0) {
-        powerConsumption_ = power;
-    }
+    Heater(const std::string& id, const std::string& name, double power);
 
-    void turnOn() override {
-        if (enabled_) {
-            isOn_ = true;
-        }
-    }
+    void turnOn() override;
+    void turnOff() override;
+    bool isOn() const override;
 
-    void turnOff() override {
-        isOn_ = false;
-    }
-
-    bool isOn() const override {
-        return isOn_;
-    }
-
-    void setTargetTemperature(double temp) {
-        targetTemp_ = temp;
-    }
-
-    double getTargetTemperature() const {
-        return targetTemp_;
-    }
+    void setTargetTemperature(double temp);
+    double getTargetTemperature() const;
 
 private:
     bool isOn_;

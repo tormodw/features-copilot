@@ -8,24 +8,19 @@
 
 class Sensor {
 public:
-    Sensor(const std::string& id, const std::string& name)
-        : id_(id), name_(name), enabled_(true) {}
+    Sensor(const std::string& id, const std::string& name);
 
     virtual ~Sensor() = default;
 
     virtual void update() = 0;
     
-    const std::string& getId() const { return id_; }
-    const std::string& getName() const { return name_; }
-    bool isEnabled() const { return enabled_; }
-    void setEnabled(bool enabled) { enabled_ = enabled; }
+    const std::string& getId() const;
+    const std::string& getName() const;
+    bool isEnabled() const;
+    void setEnabled(bool enabled);
 
 protected:
-    void publishEvent(const Event& event) {
-        if (enabled_) {
-            EventManager::getInstance().publish(event);
-        }
-    }
+    void publishEvent(const Event& event);
 
     std::string id_;
     std::string name_;

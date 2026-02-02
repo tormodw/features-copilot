@@ -5,8 +5,7 @@
 
 class Appliance {
 public:
-    Appliance(const std::string& id, const std::string& name)
-        : id_(id), name_(name), enabled_(true), powerConsumption_(0.0) {}
+    Appliance(const std::string& id, const std::string& name);
 
     virtual ~Appliance() = default;
 
@@ -14,11 +13,11 @@ public:
     virtual void turnOff() = 0;
     virtual bool isOn() const = 0;
 
-    const std::string& getId() const { return id_; }
-    const std::string& getName() const { return name_; }
-    bool isEnabled() const { return enabled_; }
-    void setEnabled(bool enabled) { enabled_ = enabled; }
-    double getPowerConsumption() const { return powerConsumption_; }
+    const std::string& getId() const;
+    const std::string& getName() const;
+    bool isEnabled() const;
+    void setEnabled(bool enabled);
+    double getPowerConsumption() const;
 
 protected:
     std::string id_;

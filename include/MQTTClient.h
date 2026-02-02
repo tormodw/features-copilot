@@ -11,44 +11,14 @@ class MQTTClient {
 public:
     using MessageCallback = std::function<void(const std::string& topic, const std::string& payload)>;
 
-    MQTTClient(const std::string& brokerAddress, int port = 1883)
-        : brokerAddress_(brokerAddress), port_(port), connected_(false) {}
+    MQTTClient(const std::string& brokerAddress, int port = 1883);
 
-    bool connect() {
-        // Simulate connection to MQTT broker
-        connected_ = true;
-        return connected_;
-    }
-
-    void disconnect() {
-        connected_ = false;
-        subscriptions_.clear();
-    }
-
-    bool isConnected() const {
-        return connected_;
-    }
-
-    void subscribe(const std::string& topic, MessageCallback callback) {
-        if (connected_) {
-            subscriptions_[topic] = callback;
-        }
-    }
-
-    void publish(const std::string& topic, const std::string& payload) {
-        if (connected_) {
-            // In production: send MQTT message
-            // For simulation: topic and payload would be sent to broker
-        }
-    }
-
-    void processMessages() {
-        // In production: this would be called by MQTT library callback
-        // For simulation: this would process received messages
-        if (connected_) {
-            // Process any pending messages
-        }
-    }
+    bool connect();
+    void disconnect();
+    bool isConnected() const;
+    void subscribe(const std::string& topic, MessageCallback callback);
+    void publish(const std::string& topic, const std::string& payload);
+    void processMessages();
 
 private:
     std::string brokerAddress_;
