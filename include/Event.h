@@ -21,17 +21,10 @@ public:
     std::map<std::string, double> data;
     long timestamp;
 
-    Event(EventType t, const std::string& src) 
-        : type(t), source(src), timestamp(0) {}
+    Event(EventType t, const std::string& src);
     
-    void addData(const std::string& key, double value) {
-        data[key] = value;
-    }
-    
-    double getData(const std::string& key, double defaultValue = 0.0) const {
-        auto it = data.find(key);
-        return (it != data.end()) ? it->second : defaultValue;
-    }
+    void addData(const std::string& key, double value);
+    double getData(const std::string& key, double defaultValue = 0.0) const;
 };
 
 #endif // EVENT_H

@@ -5,49 +5,16 @@
 
 class Curtain : public Appliance {
 public:
-    Curtain(const std::string& id, const std::string& name)
-        : Appliance(id, name), isOpen_(true), position_(100) {
-        powerConsumption_ = 0.01; // Very low power for motors
-    }
+    Curtain(const std::string& id, const std::string& name);
 
-    void turnOn() override {
-        // For curtains, "on" means open
-        open();
-    }
+    void turnOn() override;
+    void turnOff() override;
+    bool isOn() const override;
 
-    void turnOff() override {
-        // For curtains, "off" means close
-        close();
-    }
-
-    bool isOn() const override {
-        return isOpen_;
-    }
-
-    void open() {
-        if (enabled_) {
-            isOpen_ = true;
-            position_ = 100;
-        }
-    }
-
-    void close() {
-        if (enabled_) {
-            isOpen_ = false;
-            position_ = 0;
-        }
-    }
-
-    void setPosition(int pos) {
-        if (enabled_ && pos >= 0 && pos <= 100) {
-            position_ = pos;
-            isOpen_ = (pos > 50);
-        }
-    }
-
-    int getPosition() const {
-        return position_;
-    }
+    void open();
+    void close();
+    void setPosition(int pos);
+    int getPosition() const;
 
 private:
     bool isOpen_;

@@ -5,22 +5,12 @@
 
 class EnergyMeter : public Sensor {
 public:
-    EnergyMeter(const std::string& id, const std::string& name)
-        : Sensor(id, name), currentConsumption_(0.0) {}
+    EnergyMeter(const std::string& id, const std::string& name);
 
-    void update() override {
-        Event event(EventType::ENERGY_CONSUMPTION_UPDATE, id_);
-        event.addData("consumption_kw", currentConsumption_);
-        publishEvent(event);
-    }
+    void update() override;
 
-    void setConsumption(double kw) {
-        currentConsumption_ = kw;
-    }
-
-    double getConsumption() const {
-        return currentConsumption_;
-    }
+    void setConsumption(double kw);
+    double getConsumption() const;
 
 private:
     double currentConsumption_;
