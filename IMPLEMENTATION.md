@@ -171,7 +171,7 @@ The system demonstrates intelligent decision-making:
 ## Future Enhancements
 
 For production deployment:
-1. Integrate real MQTT library (Eclipse Paho MQTT or mosquitto)
+1. Integrate real MQTT library (Eclipse Paho MQTT or mosquitto) - **See [MQTT_MOSQUITTO_GUIDE.md](MQTT_MOSQUITTO_GUIDE.md) for detailed integration instructions**
 2. Integrate real HTTP library (libcurl or cpp-httplib)
 3. Add persistent storage for historical data and analytics
 4. Implement web interface for monitoring and control
@@ -179,6 +179,15 @@ For production deployment:
 6. Implement user preference profiles
 7. Add machine learning for predictive optimization
 8. Support for additional sensor types and appliances
+
+### MQTT Integration
+
+The `MQTTClient.h` interface is designed to be compatible with production MQTT libraries. The [MQTT_MOSQUITTO_GUIDE.md](MQTT_MOSQUITTO_GUIDE.md) provides:
+- Complete mosquitto C/C++ library integration examples
+- Installation and configuration instructions
+- Topic structure and message format specifications
+- Security configuration (authentication and TLS/SSL)
+- Testing procedures with real MQTT brokers
 
 ## Compliance
 
