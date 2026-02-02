@@ -1,1 +1,150 @@
-This is my first file
+# Home Automation System
+
+A modular, event-driven C++ system for home automation based on multiple sensor inputs and energy cost optimization.
+
+## Features
+
+### Sensor Integration
+- **Energy Meters**: Monitor real-time energy consumption
+- **Temperature Sensors**: Indoor and outdoor temperature monitoring
+- **Solar Production Sensors**: Track solar panel energy production
+- **EV Charger Sensors**: Monitor electric vehicle charging status
+
+### Communication Protocol
+- **MQTT Integration**: Real-time communication with sensors and appliances
+- **HTTP API**: Fetch hourly energy costs from external services
+
+### Appliance Control
+The system manages various appliances intelligently:
+- **Heaters**: Automatic temperature control
+- **Air Conditioners**: Cooling based on temperature and energy cost
+- **Lights**: Brightness adjustment for energy savings
+- **Curtains**: Passive temperature management
+- **EV Chargers**: Smart charging based on energy costs and solar production
+
+### Decision-Making Logic
+The energy optimizer minimizes energy consumption while maintaining user comfort:
+1. **Cost-based optimization**: Stop/adjust operations during high electricity costs
+2. **Solar utilization**: Leverage solar production for usage planning
+3. **Temperature maintenance**: Ensure efficient heating/cooling
+4. **Passive strategies**: Use curtains for thermal management
+
+## Architecture
+
+### Event-Driven Design
+- **EventManager**: Central event bus for component communication
+- **Event Types**: Temperature changes, energy updates, cost updates, etc.
+- **Subscribers**: Components subscribe to relevant events
+
+### Modular Structure
+```
+include/
+├── Event.h              - Event data structure
+├── EventManager.h       - Event distribution system
+├── Sensor.h            - Base sensor class
+├── Appliance.h         - Base appliance class
+├── MQTTClient.h        - MQTT communication
+├── HTTPClient.h        - HTTP API client
+├── EnergyOptimizer.h   - Decision-making logic
+├── Sensors/
+│   ├── TemperatureSensor.h
+│   ├── EnergyMeter.h
+│   ├── SolarSensor.h
+│   └── EVChargerSensor.h
+└── Appliances/
+    ├── Heater.h
+    ├── AirConditioner.h
+    ├── Light.h
+    ├── Curtain.h
+    └── EVCharger.h
+```
+
+## Building the Project
+
+### Prerequisites
+- CMake 3.10 or higher
+- C++17 compatible compiler (GCC 7+, Clang 5+, MSVC 2017+)
+
+### Build Instructions
+
+```bash
+# Create build directory
+mkdir build
+cd build
+
+# Configure and build
+cmake ..
+make
+
+# Run the application
+./home_automation
+```
+
+## Usage Example
+
+The system automatically:
+1. Monitors sensor inputs via MQTT
+2. Fetches current energy costs from HTTP API
+3. Makes intelligent decisions to optimize energy usage
+4. Controls appliances based on:
+   - Current energy cost
+   - Solar production levels
+   - Indoor/outdoor temperatures
+   - User comfort requirements
+
+### Example Scenarios
+
+**Scenario 1: High Energy Cost**
+- System stops EV charging when electricity is expensive
+- Reduces lighting brightness
+- Minimizes HVAC usage if temperature is acceptable
+
+**Scenario 2: High Solar Production**
+- Prioritizes energy-intensive tasks (EV charging, heating)
+- Opens curtains to utilize solar heat
+- Runs appliances on solar power
+
+**Scenario 3: Temperature Control**
+- Turns on heater when indoor temperature drops below target
+- Activates AC when temperature exceeds target
+- Closes curtains to block external heat
+
+## Extensibility
+
+The system is designed for easy extension:
+
+### Adding New Sensors
+1. Inherit from `Sensor` base class
+2. Implement `update()` method
+3. Publish events using `publishEvent()`
+
+### Adding New Appliances
+1. Inherit from `Appliance` base class
+2. Implement control methods (`turnOn()`, `turnOff()`)
+3. Add to `EnergyOptimizer` for automated control
+
+### Adding New Event Types
+1. Add to `EventType` enum in `Event.h`
+2. Subscribe to events in relevant components
+3. Implement event handlers
+
+## Configuration
+
+The system can be configured by:
+- Adjusting thresholds in `EnergyOptimizer` (cost thresholds, temperature targets)
+- Modifying MQTT broker address
+- Changing HTTP API endpoint
+- Adding/removing sensors and appliances
+
+## Production Deployment
+
+For production use, integrate:
+- **MQTT Library**: Eclipse Paho MQTT or mosquitto
+- **HTTP Library**: libcurl or cpp-httplib
+- **Database**: Store historical data and analytics
+- **Web Interface**: Control panel for monitoring and manual control
+- **Security**: TLS/SSL for MQTT and HTTP communications
+
+## License
+
+This is a demonstration project for home automation system design.
