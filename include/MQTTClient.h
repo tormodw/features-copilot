@@ -7,6 +7,14 @@
 
 // MQTT Client interface for communicating with sensors and appliances
 // In production, this would use a library like Paho MQTT or mosquitto
+// 
+// For production integration with Eclipse Mosquitto, see MQTT_MOSQUITTO_GUIDE.md
+// The guide includes:
+// - Installation instructions
+// - Complete implementation examples
+// - Topic structure and message formats
+// - Security configuration
+// - Testing procedures
 class MQTTClient {
 public:
     using MessageCallback = std::function<void(const std::string& topic, const std::string& payload)>;

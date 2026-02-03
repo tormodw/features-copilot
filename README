@@ -185,11 +185,25 @@ The system can be configured by:
 ## Production Deployment
 
 For production use, integrate:
-- **MQTT Library**: Eclipse Paho MQTT or mosquitto
+- **MQTT Library**: Eclipse Paho MQTT or mosquitto (see [MQTT_MOSQUITTO_GUIDE.md](MQTT_MOSQUITTO_GUIDE.md) for integration instructions)
 - **HTTP Library**: libcurl or cpp-httplib
 - **Database**: Store historical data and analytics
 - **Web Interface**: Control panel for monitoring and manual control
 - **Security**: TLS/SSL for MQTT and HTTP communications
+
+### MQTT Integration with Mosquitto
+
+The current `MQTTClient` uses a mock implementation for simulation. To integrate with a real MQTT broker using the Eclipse Mosquitto library, see the comprehensive guide:
+
+**[MQTT_MOSQUITTO_GUIDE.md](MQTT_MOSQUITTO_GUIDE.md)** - Complete guide with:
+- Installation instructions for mosquitto library and broker
+- Integration approaches (wrapper vs direct usage)
+- Example code for production deployment
+- MQTT topics structure and message formats
+- Broker configuration (basic and secure)
+- Authentication and TLS/SSL setup
+- Testing with mosquitto clients
+- Troubleshooting tips
 
 ## License
 
