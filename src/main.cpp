@@ -108,7 +108,15 @@ int main() {
     mqttClient->subscribe("sensor/temperature/indoor", 
         [&](const std::string& topic, const std::string& payload) {
             try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
                 double temp = std::stod(payload);
+                if (temp < -50.0 || temp > 100.0) {
+                    std::cerr << "Temperature value out of range from " << topic << ": " << temp << std::endl;
+                    return;
+                }
                 indoorTempSensor->setTemperature(temp);
                 indoorTempSensor->update();
                 std::cout << "Received MQTT message on " << topic << ": " << temp << "°C" << std::endl;
@@ -119,7 +127,15 @@ int main() {
     mqttClient->subscribe("sensor/temperature/outdoor",
         [&](const std::string& topic, const std::string& payload) {
             try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
                 double temp = std::stod(payload);
+                if (temp < -50.0 || temp > 100.0) {
+                    std::cerr << "Temperature value out of range from " << topic << ": " << temp << std::endl;
+                    return;
+                }
                 outdoorTempSensor->setTemperature(temp);
                 outdoorTempSensor->update();
                 std::cout << "Received MQTT message on " << topic << ": " << temp << "°C" << std::endl;
@@ -130,7 +146,15 @@ int main() {
     mqttClient->subscribe("sensor/solar/production",
         [&](const std::string& topic, const std::string& payload) {
             try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
                 double production = std::stod(payload);
+                if (production < 0.0 || production > 100.0) {
+                    std::cerr << "Solar production value out of range from " << topic << ": " << production << std::endl;
+                    return;
+                }
                 solarSensor->setProduction(production);
                 solarSensor->update();
                 std::cout << "Received MQTT message on " << topic << ": " << production << " kW" << std::endl;
