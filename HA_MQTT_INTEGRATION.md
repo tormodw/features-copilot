@@ -31,7 +31,7 @@ The Home Assistant MQTT Integration (`HAIntegration` class) enables:
 │              Home Automation System                     │
 │                                                          │
 │  ┌──────────────┐         ┌─────────────────┐         │
-│  │ HAIntegration│◄────────┤   MQTTClient    │         │
+│  │ HAIntegration│◄────────►   MQTTClient    │         │
 │  └──────┬───────┘         └─────────────────┘         │
 │         │                                               │
 │         │ Subscribe/Publish                             │

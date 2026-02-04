@@ -66,11 +66,13 @@ bool MQTTClient::topicMatches(const std::string& pattern, const std::string& top
     // Check for # wildcard (matches everything after this point)
     size_t hashPos = pattern.find('#');
     if (hashPos != std::string::npos) {
-        // # must be at the end or followed by nothing
-        if (hashPos == pattern.length() - 1 || (hashPos < pattern.length() - 1 && pattern[hashPos + 1] == '/')) {
+        // # must be at the end
+        if (hashPos == pattern.length() - 1) {
             std::string prefix = pattern.substr(0, hashPos);
             return topic.find(prefix) == 0;
         }
+        // Invalid pattern if # is not at the end
+        return false;
     }
     
     // Check for + wildcard (single level match)

@@ -29,7 +29,9 @@ void HAIntegration::subscribeToDomain(const std::string& domain, StateCallback c
     }
     
     domainCallbacks_[domain] = callback;
-    std::string topic = haDiscoveryPrefix_ + "/" + domain + "/+/state";
+    // Topic pattern to match all entities in a domain
+    // Format: homeassistant/state/domain.*
+    std::string topic = haDiscoveryPrefix_ + "/state/" + domain + ".+";
     
     mqttClient_->subscribe(topic, [this, domain](const std::string& topic, const std::string& payload) {
         handleStateMessage(topic, payload);
@@ -122,21 +124,36 @@ bool HAIntegration::parseStateMessage(const std::string& payload, std::string& s
         if (statePos != std::string::npos) {
             size_t colonPos = payload.find(":", statePos);
             size_t quoteStart = payload.find("\"", colonPos);
+            if (quoteStart == std::string::npos) {
+                return false;
+            }
             size_t quoteEnd = payload.find("\"", quoteStart + 1);
             
-            if (quoteStart != std::string::npos && quoteEnd != std::string::npos) {
+            if (quoteEnd != std::string::npos) {
                 state = payload.substr(quoteStart + 1, quoteEnd - quoteStart - 1);
             }
         }
         
         // Extract attributes if present
+        // Note: This is a simplified extraction. For complex JSON, use a proper parser.
         size_t attrPos = payload.find("\"attributes\"");
         if (attrPos != std::string::npos) {
             size_t braceStart = payload.find("{", attrPos);
-            size_t braceEnd = payload.rfind("}");
-            
-            if (braceStart != std::string::npos && braceEnd != std::string::npos && braceEnd > braceStart) {
-                attributes = payload.substr(braceStart, braceEnd - braceStart + 1);
+            if (braceStart != std::string::npos) {
+                // Count braces to find matching closing brace
+                int braceCount = 1;
+                size_t pos = braceStart + 1;
+                while (pos < payload.length() && braceCount > 0) {
+                    if (payload[pos] == '{') {
+                        braceCount++;
+                    } else if (payload[pos] == '}') {
+                        braceCount--;
+                    }
+                    pos++;
+                }
+                if (braceCount == 0) {
+                    attributes = payload.substr(braceStart, pos - braceStart);
+                }
             }
         }
         
@@ -187,14 +204,15 @@ std::string HAIntegration::extractDomain(const std::string& entityId) {
 }
 
 void HAIntegration::handleStateMessage(const std::string& topic, const std::string& payload) {
-    // Extract entity ID from topic
-    // Topic format: homeassistant/state/<entity_id>
-    size_t lastSlash = topic.rfind('/');
-    if (lastSlash == std::string::npos) {
+    // Validate topic starts with expected prefix
+    std::string expectedPrefix = haDiscoveryPrefix_ + "/state/";
+    if (topic.find(expectedPrefix) != 0) {
         return;
     }
     
-    std::string entityId = topic.substr(lastSlash + 1);
+    // Extract entity ID from topic
+    // Topic format: homeassistant/state/<entity_id>
+    std::string entityId = topic.substr(expectedPrefix.length());
     
     // Parse the message
     std::string state, attributes;

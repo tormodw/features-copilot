@@ -264,11 +264,8 @@ int main() {
         }
 
         // Update sensor readings (triggers events)
-        // Note: Indoor/outdoor temp and solar are updated via HA callbacks
-        // indoorTempSensor->update();
-        // outdoorTempSensor->update();
-        // solarSensor->update();
-        // energyMeter->update();
+        // Note: Indoor/outdoor temp, solar, and energy are updated via HA MQTT callbacks
+        // EV charger sensor is updated directly here as it's not fetched from HA in this demo
         evChargerSensor->update();
 
         // Update energy cost from API
