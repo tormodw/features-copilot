@@ -24,7 +24,7 @@ int main() {
     std::cout << "=== Home Automation System Starting ===" << std::endl << std::endl;
 
     // Initialize communication clients
-    auto mqttClient = std::make_shared<MQTTClient>("localhost", 1883);
+    auto mqttClient = std::make_shared<MQTTClient>("10.0.0.59", 1883);
     auto httpClient = std::make_shared<HTTPClient>("http://api.energy.com/hourly");
 
     // Connect to MQTT broker
