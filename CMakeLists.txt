@@ -33,6 +33,15 @@ add_executable(home_automation
     src/HAIntegration.cpp
 )
 
+# Find mosquitto library
+find_library(MOSQUITTO_LIB mosquitto REQUIRED)
+
+# Link mosquitto library
+target_link_libraries(home_automation ${MOSQUITTO_LIB})
+
+# Include directories
+target_include_directories(home_automation PRIVATE include)
+
 # Enable warnings
 if(MSVC)
     target_compile_options(home_automation PRIVATE /W4)

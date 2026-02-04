@@ -32,6 +32,7 @@ void HAIntegration::subscribeToDomain(const std::string& domain, StateCallback c
     // Topic pattern to match all entities in a domain
     // Format: homeassistant/state/domain.*
     std::string topic = haDiscoveryPrefix_ + "/state/" + domain + ".+";
+ //twi   std::string topic = haDiscoveryPrefix_ + "/" + domain;
     
     mqttClient_->subscribe(topic, [this, domain](const std::string& topic, const std::string& payload) {
         handleStateMessage(topic, payload);
@@ -181,6 +182,7 @@ std::string HAIntegration::getStateTopic(const std::string& entityId) const {
     // HA state topic format: homeassistant/<domain>/<node_id>/<object_id>/state
     // or simpler: homeassistant/state/<entity_id>
     return haDiscoveryPrefix_ + "/state/" + entityId;
+//twi    return haDiscoveryPrefix_ + "/" + entityId;
 }
 
 std::string HAIntegration::getCommandTopic(const std::string& entityId) const {

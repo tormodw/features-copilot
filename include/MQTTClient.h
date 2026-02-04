@@ -1,3 +1,4 @@
+// MQTTClient.h - Interface remains unchanged
 #ifndef MQTT_CLIENT_H
 #define MQTT_CLIENT_H
 
@@ -5,21 +6,12 @@
 #include <functional>
 #include <map>
 
-// MQTT Client interface for communicating with sensors and appliances
-// In production, this would use a library like Paho MQTT or mosquitto
-// 
-// For production integration with Eclipse Mosquitto, see MQTT_MOSQUITTO_GUIDE.md
-// The guide includes:
-// - Installation instructions
-// - Complete implementation examples
-// - Topic structure and message formats
-// - Security configuration
-// - Testing procedures
 class MQTTClient {
 public:
     using MessageCallback = std::function<void(const std::string& topic, const std::string& payload)>;
 
     MQTTClient(const std::string& brokerAddress, int port = 1883);
+    ~MQTTClient();
 
     bool connect();
     void disconnect();
@@ -39,6 +31,10 @@ private:
     
     // Check if a topic matches a subscription pattern (supports + and # wildcards)
     bool topicMatches(const std::string& pattern, const std::string& topic) const;
+    // Mosquitto-specific members
+    struct mosquitto* mosq_;
+    static void on_connect_callback(struct mosquitto* mosq, void* obj, int result);
+//    static void on_message_callback(struct mosquitto* mosq, void* obj, const struct mosquitto_message* message);
 };
 
 #endif // MQTT_CLIENT_H
