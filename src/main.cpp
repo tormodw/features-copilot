@@ -162,6 +162,25 @@ int main() {
                 std::cerr << "Failed to parse solar production from " << topic << ": " << e.what() << std::endl;
             }
         });
+    mqttClient->subscribe("homeassistant/sensor/eva_meter_reader_summation_delivered/state",
+        [&](const std::string& topic, const std::string& payload) {
+            try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
+                double consumption = std::stod(payload);
+                if (consumption < 0.0 || consumption > 1000.0) {
+                    std::cerr << "Energy consumption value out of range from " << topic << ": " << consumption << std::endl;
+                    return;
+                }
+                energyMeter->setConsumption(consumption);
+                energyMeter->update();
+                std::cout << "Received MQTT message on " << topic << ": " << consumption << " kW" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to parse energy consumption from " << topic << ": " << e.what() << std::endl;
+            }
+        });
 
     std::cout << "=== Starting simulation ===" << std::endl << std::endl;
 
