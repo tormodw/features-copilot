@@ -27,12 +27,18 @@ public:
     void subscribe(const std::string& topic, MessageCallback callback);
     void publish(const std::string& topic, const std::string& payload);
     void processMessages();
+    
+    // Simulate receiving a message (for testing without real broker)
+    void simulateMessage(const std::string& topic, const std::string& payload);
 
 private:
     std::string brokerAddress_;
     int port_;
     bool connected_;
     std::map<std::string, MessageCallback> subscriptions_;
+    
+    // Check if a topic matches a subscription pattern (supports + and # wildcards)
+    bool topicMatches(const std::string& pattern, const std::string& topic) const;
 };
 
 #endif // MQTT_CLIENT_H

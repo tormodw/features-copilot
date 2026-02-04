@@ -30,6 +30,7 @@ add_executable(home_automation
     src/MLPredictor.cpp
     src/DayAheadOptimizer.cpp
     src/HistoricalDataGenerator.cpp
+    src/HAIntegration.cpp
 )
 
 # Enable warnings

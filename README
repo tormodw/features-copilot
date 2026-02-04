@@ -12,6 +12,10 @@ A modular, event-driven C++ system for home automation based on multiple sensor 
 
 ### Communication Protocol
 - **MQTT Integration**: Real-time communication with sensors and appliances
+- **Home Assistant MQTT Integration**: Bidirectional data exchange with Home Assistant
+  - Fetch sensor data FROM HA via MQTT subscribe
+  - Execute commands TO HA via MQTT publish
+  - Support for HA MQTT discovery protocol
 - **HTTP API**: Fetch hourly energy costs from external services
 
 ### Appliance Control
@@ -53,6 +57,7 @@ include/
 ├── Sensor.h                   - Base sensor class
 ├── Appliance.h                - Base appliance class
 ├── MQTTClient.h               - MQTT communication
+├── HAIntegration.h            - Home Assistant MQTT integration
 ├── HTTPClient.h               - HTTP API client
 ├── EnergyOptimizer.h          - Real-time decision-making logic
 ├── MLPredictor.h              - ML-based forecasting engine
@@ -186,6 +191,7 @@ The system can be configured by:
 
 For production use, integrate:
 - **MQTT Library**: Eclipse Paho MQTT or mosquitto (see [MQTT_MOSQUITTO_GUIDE.md](MQTT_MOSQUITTO_GUIDE.md) for integration instructions)
+- **Home Assistant**: Connect to real HA instance via MQTT (see [HA_MQTT_INTEGRATION.md](HA_MQTT_INTEGRATION.md) for complete guide)
 - **HTTP Library**: libcurl or cpp-httplib
 - **Database**: Store historical data and analytics
 - **Web Interface**: Control panel for monitoring and manual control
@@ -204,6 +210,19 @@ The current `MQTTClient` uses a mock implementation for simulation. To integrate
 - Authentication and TLS/SSL setup
 - Testing with mosquitto clients
 - Troubleshooting tips
+
+### Home Assistant MQTT Integration
+
+The system now includes full bidirectional integration with Home Assistant via MQTT:
+
+**[HA_MQTT_INTEGRATION.md](HA_MQTT_INTEGRATION.md)** - Complete guide with:
+- Fetching sensor data FROM Home Assistant via MQTT subscribe
+- Executing commands TO Home Assistant via MQTT publish
+- Home Assistant MQTT discovery protocol support
+- Complete usage examples and API reference
+- HA configuration examples for sensors, switches, lights
+- Testing procedures with real Home Assistant
+- Troubleshooting and best practices
 
 ## License
 
