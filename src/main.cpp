@@ -38,6 +38,8 @@ int main() {
     std::cout << "This demonstrates automatic publishing of ALL local sensor states to MQTT/Home Assistant\n" << std::endl;
     
     // Setup MQTT and HA Integration
+    // Note: For production, use environment variables or config files for broker address
+    // Example: const char* brokerAddr = std::getenv("MQTT_BROKER") ? std::getenv("MQTT_BROKER") : "localhost";
     auto mqttClient = std::make_shared<MQTTClient>("10.0.0.59", 1883);
     mqttClient->connect();
     
