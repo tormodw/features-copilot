@@ -14,6 +14,7 @@ A modular, event-driven C++ system for home automation based on multiple sensor 
 - **MQTT Integration**: Real-time communication with sensors and appliances
 - **Home Assistant MQTT Integration**: Bidirectional data exchange with Home Assistant
   - Fetch sensor data FROM HA via MQTT subscribe
+  - **Publish local sensor states TO HA/MQTT** for monitoring and automation
   - Execute commands TO HA via MQTT publish
   - Support for HA MQTT discovery protocol
 - **HTTP API**: Fetch hourly energy costs from external services
@@ -223,6 +224,15 @@ The system now includes full bidirectional integration with Home Assistant via M
 - HA configuration examples for sensors, switches, lights
 - Testing procedures with real Home Assistant
 - Troubleshooting and best practices
+
+**[SENSOR_STATE_PUBLISHING.md](SENSOR_STATE_PUBLISHING.md)** - Publishing sensor states guide:
+- How to publish ALL local sensor states to MQTT/Home Assistant
+- Automatic sensor registration using MQTT discovery
+- Publishing sensor states with attributes (units, friendly names)
+- Automatic publishing on sensor updates
+- Complete working examples and MQTT topic structure
+- Home Assistant configuration for receiving sensor data
+- Testing with MQTT command-line tools
 
 ## License
 

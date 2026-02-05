@@ -120,7 +120,21 @@ void HAIntegration::publishState(const std::string& entityId, const std::string&
     // If attributes provided, create JSON payload, otherwise just send state value
     if (!attributes.empty()) {
         std::ostringstream oss;
-        oss << "{\"state\": \"" << state << "\", \"attributes\": " << attributes << "}";
+        // Escape the state value for JSON
+        std::string escapedState;
+        for (char c : state) {
+            switch (c) {
+                case '"': escapedState += "\\\""; break;
+                case '\\': escapedState += "\\\\"; break;
+                case '\b': escapedState += "\\b"; break;
+                case '\f': escapedState += "\\f"; break;
+                case '\n': escapedState += "\\n"; break;
+                case '\r': escapedState += "\\r"; break;
+                case '\t': escapedState += "\\t"; break;
+                default: escapedState += c; break;
+            }
+        }
+        oss << "{\"state\": \"" << escapedState << "\", \"attributes\": " << attributes << "}";
         payload = oss.str();
     } else {
         payload = state;

@@ -23,6 +23,38 @@
 #include <sstream>
 #include <iomanip>
 
+// Helper function to escape JSON strings
+std::string escapeJsonString(const std::string& input) {
+    std::ostringstream escaped;
+    for (char c : input) {
+        switch (c) {
+            case '"': escaped << "\\\""; break;
+            case '\\': escaped << "\\\\"; break;
+            case '\b': escaped << "\\b"; break;
+            case '\f': escaped << "\\f"; break;
+            case '\n': escaped << "\\n"; break;
+            case '\r': escaped << "\\r"; break;
+            case '\t': escaped << "\\t"; break;
+            default:
+                if (c < 0x20) {
+                    escaped << "\\u" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(c);
+                } else {
+                    escaped << c;
+                }
+        }
+    }
+    return escaped.str();
+}
+
+// Helper function to create sensor attributes JSON
+std::string createSensorAttributes(const std::string& name, const std::string& unit, const std::string& deviceClass) {
+    std::ostringstream attrs;
+    attrs << "{\"unit_of_measurement\": \"" << escapeJsonString(unit) << "\", "
+          << "\"friendly_name\": \"" << escapeJsonString(name) << "\", "
+          << "\"device_class\": \"" << escapeJsonString(deviceClass) << "\"}";
+    return attrs.str();
+}
+
 int main() {
     std::cout << "\n=== Home Assistant Sensor State Publishing Demo ===" << std::endl;
     std::cout << "This demonstrates automatic publishing of ALL local sensor states to MQTT/Home Assistant\n" << std::endl;
@@ -95,41 +127,34 @@ int main() {
     // This shows how to publish sensor data WITH attributes for richer information
     
     // Indoor Temperature with attributes
-    std::ostringstream indoorAttrs;
-    indoorAttrs << "{\"unit_of_measurement\": \"°C\", \"friendly_name\": \"" 
-                << indoorTempSensor->getName() << "\", \"device_class\": \"temperature\"}";
+    std::string indoorAttrs = createSensorAttributes(indoorTempSensor->getName(), "°C", "temperature");
     haIntegration->publishState("sensor.local_temp_indoor", 
                                 std::to_string(indoorTempSensor->getTemperature()),
-                                indoorAttrs.str());
+                                indoorAttrs);
     
     // Outdoor Temperature with attributes
-    std::ostringstream outdoorAttrs;
-    outdoorAttrs << "{\"unit_of_measurement\": \"°C\", \"friendly_name\": \"" 
-                 << outdoorTempSensor->getName() << "\", \"device_class\": \"temperature\"}";
+    std::string outdoorAttrs = createSensorAttributes(outdoorTempSensor->getName(), "°C", "temperature");
     haIntegration->publishState("sensor.local_temp_outdoor", 
                                 std::to_string(outdoorTempSensor->getTemperature()),
-                                outdoorAttrs.str());
+                                outdoorAttrs);
     
     // Energy Consumption with attributes
-    std::ostringstream energyAttrs;
-    energyAttrs << "{\"unit_of_measurement\": \"kW\", \"friendly_name\": \"" 
-                << energyMeter->getName() << "\", \"device_class\": \"power\"}";
+    std::string energyAttrs = createSensorAttributes(energyMeter->getName(), "kW", "power");
     haIntegration->publishState("sensor.local_energy_consumption", 
                                 std::to_string(energyMeter->getConsumption()),
-                                energyAttrs.str());
+                                energyAttrs);
     
     // Solar Production with attributes
-    std::ostringstream solarAttrs;
-    solarAttrs << "{\"unit_of_measurement\": \"kW\", \"friendly_name\": \"" 
-               << solarSensor->getName() << "\", \"device_class\": \"power\"}";
+    std::string solarAttrs = createSensorAttributes(solarSensor->getName(), "kW", "power");
     haIntegration->publishState("sensor.local_solar_production", 
                                 std::to_string(solarSensor->getProduction()),
-                                solarAttrs.str());
+                                solarAttrs);
     
     // EV Charger Power with attributes and additional info
     std::ostringstream evAttrs;
-    evAttrs << "{\"unit_of_measurement\": \"kW\", \"friendly_name\": \"" 
-            << evChargerSensor->getName() << "\", \"device_class\": \"power\", "
+    evAttrs << "{\"unit_of_measurement\": \"" << escapeJsonString("kW") << "\", "
+            << "\"friendly_name\": \"" << escapeJsonString(evChargerSensor->getName()) << "\", "
+            << "\"device_class\": \"" << escapeJsonString("power") << "\", "
             << "\"charging\": " << (evChargerSensor->isCharging() ? "true" : "false") << "}";
     haIntegration->publishState("sensor.local_ev_charger_power", 
                                 std::to_string(evChargerSensor->getChargePower()),
@@ -165,19 +190,19 @@ int main() {
         // Publish updated states to MQTT/HA
         haIntegration->publishState("sensor.local_temp_indoor", 
                                     std::to_string(newIndoorTemp),
-                                    indoorAttrs.str());
+                                    indoorAttrs);
         
         haIntegration->publishState("sensor.local_temp_outdoor", 
                                     std::to_string(newOutdoorTemp),
-                                    outdoorAttrs.str());
+                                    outdoorAttrs);
         
         haIntegration->publishState("sensor.local_energy_consumption", 
                                     std::to_string(newEnergy),
-                                    energyAttrs.str());
+                                    energyAttrs);
         
         haIntegration->publishState("sensor.local_solar_production", 
                                     std::to_string(newSolar),
-                                    solarAttrs.str());
+                                    solarAttrs);
         
         std::cout << "Published updated states:" << std::endl;
         std::cout << "  - Indoor Temperature: " << newIndoorTemp << " °C" << std::endl;
