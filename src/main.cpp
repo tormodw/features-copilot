@@ -20,57 +20,179 @@
 #include <thread>
 #include <chrono>
 #include <ctime>
+#include <sstream>
+#include <iomanip>
 
 int main() {
+    std::cout << "\n=== Home Assistant Sensor State Publishing Demo ===" << std::endl;
+    std::cout << "This demonstrates automatic publishing of ALL local sensor states to MQTT/Home Assistant\n" << std::endl;
+    
     // Setup MQTT and HA Integration
     auto mqttClient = std::make_shared<MQTTClient>("10.0.0.59", 1883);
     mqttClient->connect();
     
     auto haIntegration = std::make_shared<HAIntegration>(mqttClient);
     
-    // Local sensor
+    std::cout << "=== Step 1: Creating Local Sensors ===" << std::endl;
+    
+    // Create multiple local sensors
     auto indoorTempSensor = std::make_shared<TemperatureSensor>(
-        "temp_indoor_1", "Living Room", TemperatureSensor::Location::INDOOR);
-
+        "temp_indoor_1", "Living Room Temperature", TemperatureSensor::Location::INDOOR);
+    
+    auto outdoorTempSensor = std::make_shared<TemperatureSensor>(
+        "temp_outdoor_1", "Outdoor Temperature", TemperatureSensor::Location::OUTDOOR);
+    
     auto energyMeter = std::make_shared<EnergyMeter>(
         "energy_meter_1", "Main Energy Meter");
-
-
-    haIntegration->subscribeToDomain("status",
-        [&] (const std::string& entityId, const std::string& state, const std::string& attributes){
-            std::cout << "HA: updated sensor change"  << std::endl;
-        });
     
-    // Subscribe to HA energy meter
-    haIntegration->subscribeToEntity("sensor.eva_meter_reader_summation_delivered",
-        [&](const std::string& entityId, const std::string& state, const std::string& attributes) {
-            (void) attributes;
-            try {
-                double consumption = std::stod(state);
-                energyMeter->setConsumption(consumption);
-                energyMeter->update();
-                std::cout << "HA: Updated energy consumption from " << entityId << ": " << consumption << " kW" << std::endl;
-            } catch (...) {
-                std::cerr << "HA: Failed to parse energy consumption from " << entityId << std::endl;
-            }
-        });
+    auto solarSensor = std::make_shared<SolarSensor>(
+        "solar_1", "Solar Production");
     
-    // Control logic example
-    if (indoorTempSensor->getTemperature() < 20.0) {
-        // Too cold - turn on heater via HA
-        haIntegration->publishCommand("switch.heater", "ON");
-        std::cout << "Turned on heater via Home Assistant" << std::endl;
-    } else if (indoorTempSensor->getTemperature() > 25.0) {
-        // Too hot - turn on AC via HA
-        haIntegration->publishCommandWithData("climate.ac", "cool",
-            "{\"temperature\": 22.0}");
-        std::cout << "Turned on AC via Home Assistant" << std::endl;
+    auto evChargerSensor = std::make_shared<EVChargerSensor>(
+        "ev_charger_1", "EV Charger Status");
+    
+    std::cout << "Created 5 local sensors\n" << std::endl;
+    
+    std::cout << "=== Step 2: Publishing Discovery Configs to HA ===" << std::endl;
+    
+    // Publish discovery configs for all sensors so they appear in HA automatically
+    haIntegration->publishDiscovery("sensor", "home_automation", "local_temp_indoor",
+        "{\"name\": \"Local Indoor Temperature\", \"state_topic\": \"homeassistant/state/sensor.local_temp_indoor\", "
+        "\"unit_of_measurement\": \"°C\", \"device_class\": \"temperature\"}");
+    
+    haIntegration->publishDiscovery("sensor", "home_automation", "local_temp_outdoor",
+        "{\"name\": \"Local Outdoor Temperature\", \"state_topic\": \"homeassistant/state/sensor.local_temp_outdoor\", "
+        "\"unit_of_measurement\": \"°C\", \"device_class\": \"temperature\"}");
+    
+    haIntegration->publishDiscovery("sensor", "home_automation", "local_energy_consumption",
+        "{\"name\": \"Local Energy Consumption\", \"state_topic\": \"homeassistant/state/sensor.local_energy_consumption\", "
+        "\"unit_of_measurement\": \"kW\", \"device_class\": \"power\"}");
+    
+    haIntegration->publishDiscovery("sensor", "home_automation", "local_solar_production",
+        "{\"name\": \"Local Solar Production\", \"state_topic\": \"homeassistant/state/sensor.local_solar_production\", "
+        "\"unit_of_measurement\": \"kW\", \"device_class\": \"power\"}");
+    
+    haIntegration->publishDiscovery("sensor", "home_automation", "local_ev_charger_power",
+        "{\"name\": \"Local EV Charger Power\", \"state_topic\": \"homeassistant/state/sensor.local_ev_charger_power\", "
+        "\"unit_of_measurement\": \"kW\", \"device_class\": \"power\"}");
+    
+    std::cout << "Published 5 discovery configs\n" << std::endl;
+    
+    std::cout << "=== Step 3: Setting Initial Sensor Values ===" << std::endl;
+    
+    // Set initial sensor values
+    indoorTempSensor->setTemperature(22.5);
+    outdoorTempSensor->setTemperature(15.0);
+    energyMeter->setConsumption(3.5);
+    solarSensor->setProduction(5.2);
+    evChargerSensor->setCharging(true, 11.0);
+    
+    std::cout << "Set initial values for all sensors\n" << std::endl;
+    
+    std::cout << "=== Step 4: Publishing ALL Sensor States to MQTT ===" << std::endl;
+    
+    // Publish all sensor states to MQTT/HA
+    // This shows how to publish sensor data WITH attributes for richer information
+    
+    // Indoor Temperature with attributes
+    std::ostringstream indoorAttrs;
+    indoorAttrs << "{\"unit_of_measurement\": \"°C\", \"friendly_name\": \"" 
+                << indoorTempSensor->getName() << "\", \"device_class\": \"temperature\"}";
+    haIntegration->publishState("sensor.local_temp_indoor", 
+                                std::to_string(indoorTempSensor->getTemperature()),
+                                indoorAttrs.str());
+    
+    // Outdoor Temperature with attributes
+    std::ostringstream outdoorAttrs;
+    outdoorAttrs << "{\"unit_of_measurement\": \"°C\", \"friendly_name\": \"" 
+                 << outdoorTempSensor->getName() << "\", \"device_class\": \"temperature\"}";
+    haIntegration->publishState("sensor.local_temp_outdoor", 
+                                std::to_string(outdoorTempSensor->getTemperature()),
+                                outdoorAttrs.str());
+    
+    // Energy Consumption with attributes
+    std::ostringstream energyAttrs;
+    energyAttrs << "{\"unit_of_measurement\": \"kW\", \"friendly_name\": \"" 
+                << energyMeter->getName() << "\", \"device_class\": \"power\"}";
+    haIntegration->publishState("sensor.local_energy_consumption", 
+                                std::to_string(energyMeter->getConsumption()),
+                                energyAttrs.str());
+    
+    // Solar Production with attributes
+    std::ostringstream solarAttrs;
+    solarAttrs << "{\"unit_of_measurement\": \"kW\", \"friendly_name\": \"" 
+               << solarSensor->getName() << "\", \"device_class\": \"power\"}";
+    haIntegration->publishState("sensor.local_solar_production", 
+                                std::to_string(solarSensor->getProduction()),
+                                solarAttrs.str());
+    
+    // EV Charger Power with attributes and additional info
+    std::ostringstream evAttrs;
+    evAttrs << "{\"unit_of_measurement\": \"kW\", \"friendly_name\": \"" 
+            << evChargerSensor->getName() << "\", \"device_class\": \"power\", "
+            << "\"charging\": " << (evChargerSensor->isCharging() ? "true" : "false") << "}";
+    haIntegration->publishState("sensor.local_ev_charger_power", 
+                                std::to_string(evChargerSensor->getChargePower()),
+                                evAttrs.str());
+    
+    std::cout << "\nAll sensor states published!" << std::endl;
+    std::cout << "  - Indoor Temperature: " << indoorTempSensor->getTemperature() << " °C" << std::endl;
+    std::cout << "  - Outdoor Temperature: " << outdoorTempSensor->getTemperature() << " °C" << std::endl;
+    std::cout << "  - Energy Consumption: " << energyMeter->getConsumption() << " kW" << std::endl;
+    std::cout << "  - Solar Production: " << solarSensor->getProduction() << " kW" << std::endl;
+    std::cout << "  - EV Charger Power: " << evChargerSensor->getChargePower() << " kW" << std::endl;
+    
+    std::cout << "\n=== Step 5: Automatic Updates - Publishing Changes ===" << std::endl;
+    std::cout << "Simulating sensor updates and automatically publishing to MQTT...\n" << std::endl;
+    
+    // Simulate automatic updates every 5 seconds
+    for (int i = 0; i < 3; i++) {
+        std::this_thread::sleep_for(std::chrono::seconds(5));
+        
+        std::cout << "\n--- Update #" << (i+1) << " ---" << std::endl;
+        
+        // Update sensor values
+        double newIndoorTemp = 22.5 + (i * 0.5);
+        double newOutdoorTemp = 15.0 - (i * 0.3);
+        double newEnergy = 3.5 + (i * 0.2);
+        double newSolar = 5.2 + (i * 0.5);
+        
+        indoorTempSensor->setTemperature(newIndoorTemp);
+        outdoorTempSensor->setTemperature(newOutdoorTemp);
+        energyMeter->setConsumption(newEnergy);
+        solarSensor->setProduction(newSolar);
+        
+        // Publish updated states to MQTT/HA
+        haIntegration->publishState("sensor.local_temp_indoor", 
+                                    std::to_string(newIndoorTemp),
+                                    indoorAttrs.str());
+        
+        haIntegration->publishState("sensor.local_temp_outdoor", 
+                                    std::to_string(newOutdoorTemp),
+                                    outdoorAttrs.str());
+        
+        haIntegration->publishState("sensor.local_energy_consumption", 
+                                    std::to_string(newEnergy),
+                                    energyAttrs.str());
+        
+        haIntegration->publishState("sensor.local_solar_production", 
+                                    std::to_string(newSolar),
+                                    solarAttrs.str());
+        
+        std::cout << "Published updated states:" << std::endl;
+        std::cout << "  - Indoor Temperature: " << newIndoorTemp << " °C" << std::endl;
+        std::cout << "  - Outdoor Temperature: " << newOutdoorTemp << " °C" << std::endl;
+        std::cout << "  - Energy Consumption: " << newEnergy << " kW" << std::endl;
+        std::cout << "  - Solar Production: " << newSolar << " kW" << std::endl;
     }
     
-    // Keep running to receive updates
-    while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
+    std::cout << "\n=== Demo Complete ===" << std::endl;
+    std::cout << "\nThis demonstrates how to:" << std::endl;
+    std::cout << "  1. Create local sensors" << std::endl;
+    std::cout << "  2. Publish discovery configs to HA (sensors auto-appear in HA)" << std::endl;
+    std::cout << "  3. Publish ALL sensor states to MQTT with attributes" << std::endl;
+    std::cout << "  4. Automatically publish sensor updates" << std::endl;
+    std::cout << "\nAll sensor states are now available in Home Assistant via MQTT!" << std::endl;
     
     return 0;
 }

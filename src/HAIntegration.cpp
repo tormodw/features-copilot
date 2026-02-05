@@ -108,6 +108,29 @@ void HAIntegration::publishDiscovery(const std::string& component, const std::st
     std::cout << "HAIntegration: Published discovery for " << component << "." << objectId << std::endl;
 }
 
+void HAIntegration::publishState(const std::string& entityId, const std::string& state, const std::string& attributes) {
+    if (!mqttClient_ || !mqttClient_->isConnected()) {
+        std::cerr << "HAIntegration: MQTT client not connected" << std::endl;
+        return;
+    }
+    
+    std::string topic = getStateTopic(entityId);
+    std::string payload;
+    
+    // If attributes provided, create JSON payload, otherwise just send state value
+    if (!attributes.empty()) {
+        std::ostringstream oss;
+        oss << "{\"state\": \"" << state << "\", \"attributes\": " << attributes << "}";
+        payload = oss.str();
+    } else {
+        payload = state;
+    }
+    
+    mqttClient_->publish(topic, payload);
+    
+    std::cout << "HAIntegration: Published state for " << entityId << ": " << state << std::endl;
+}
+
 bool HAIntegration::parseStateMessage(const std::string& payload, std::string& state, std::string& attributes) {
     // Simple JSON-like parsing
     // Expected format: {"state": "value", "attributes": {...}}
