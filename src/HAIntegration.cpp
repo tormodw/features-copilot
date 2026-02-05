@@ -1,6 +1,7 @@
 #include "HAIntegration.h"
 #include <iostream>
 #include <sstream>
+#include <iomanip>
 
 HAIntegration::HAIntegration(std::shared_ptr<MQTTClient> mqttClient, const std::string& haDiscoveryPrefix)
     : mqttClient_(mqttClient), haDiscoveryPrefix_(haDiscoveryPrefix) {
@@ -120,21 +121,7 @@ void HAIntegration::publishState(const std::string& entityId, const std::string&
     // If attributes provided, create JSON payload, otherwise just send state value
     if (!attributes.empty()) {
         std::ostringstream oss;
-        // Escape the state value for JSON
-        std::string escapedState;
-        for (char c : state) {
-            switch (c) {
-                case '"': escapedState += "\\\""; break;
-                case '\\': escapedState += "\\\\"; break;
-                case '\b': escapedState += "\\b"; break;
-                case '\f': escapedState += "\\f"; break;
-                case '\n': escapedState += "\\n"; break;
-                case '\r': escapedState += "\\r"; break;
-                case '\t': escapedState += "\\t"; break;
-                default: escapedState += c; break;
-            }
-        }
-        oss << "{\"state\": \"" << escapedState << "\", \"attributes\": " << attributes << "}";
+        oss << "{\"state\": \"" << escapeJsonString(state) << "\", \"attributes\": " << attributes << "}";
         payload = oss.str();
     } else {
         payload = state;
@@ -297,4 +284,28 @@ void HAIntegration::handleDiscoveryMessage(const std::string& topic, const std::
         
         std::cout << "HAIntegration: Received discovery for component: " << component << std::endl;
     }
+}
+
+std::string HAIntegration::escapeJsonString(const std::string& input) {
+    std::ostringstream escaped;
+    for (char c : input) {
+        switch (c) {
+            case '"': escaped << "\\\""; break;
+            case '\\': escaped << "\\\\"; break;
+            case '\b': escaped << "\\b"; break;
+            case '\f': escaped << "\\f"; break;
+            case '\n': escaped << "\\n"; break;
+            case '\r': escaped << "\\r"; break;
+            case '\t': escaped << "\\t"; break;
+            default:
+                // Escape control characters
+                if (static_cast<unsigned char>(c) < 0x20) {
+                    escaped << "\\u" << std::hex << std::setw(4) << std::setfill('0') 
+                            << static_cast<int>(static_cast<unsigned char>(c));
+                } else {
+                    escaped << c;
+                }
+        }
+    }
+    return escaped.str();
 }

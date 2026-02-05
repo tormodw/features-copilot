@@ -23,35 +23,13 @@
 #include <sstream>
 #include <iomanip>
 
-// Helper function to escape JSON strings
-std::string escapeJsonString(const std::string& input) {
-    std::ostringstream escaped;
-    for (char c : input) {
-        switch (c) {
-            case '"': escaped << "\\\""; break;
-            case '\\': escaped << "\\\\"; break;
-            case '\b': escaped << "\\b"; break;
-            case '\f': escaped << "\\f"; break;
-            case '\n': escaped << "\\n"; break;
-            case '\r': escaped << "\\r"; break;
-            case '\t': escaped << "\\t"; break;
-            default:
-                if (c < 0x20) {
-                    escaped << "\\u" << std::hex << std::setw(4) << std::setfill('0') << static_cast<int>(c);
-                } else {
-                    escaped << c;
-                }
-        }
-    }
-    return escaped.str();
-}
-
 // Helper function to create sensor attributes JSON
+// Uses HAIntegration::escapeJsonString for proper escaping
 std::string createSensorAttributes(const std::string& name, const std::string& unit, const std::string& deviceClass) {
     std::ostringstream attrs;
-    attrs << "{\"unit_of_measurement\": \"" << escapeJsonString(unit) << "\", "
-          << "\"friendly_name\": \"" << escapeJsonString(name) << "\", "
-          << "\"device_class\": \"" << escapeJsonString(deviceClass) << "\"}";
+    attrs << "{\"unit_of_measurement\": \"" << HAIntegration::escapeJsonString(unit) << "\", "
+          << "\"friendly_name\": \"" << HAIntegration::escapeJsonString(name) << "\", "
+          << "\"device_class\": \"" << HAIntegration::escapeJsonString(deviceClass) << "\"}";
     return attrs.str();
 }
 
@@ -152,9 +130,9 @@ int main() {
     
     // EV Charger Power with attributes and additional info
     std::ostringstream evAttrs;
-    evAttrs << "{\"unit_of_measurement\": \"" << escapeJsonString("kW") << "\", "
-            << "\"friendly_name\": \"" << escapeJsonString(evChargerSensor->getName()) << "\", "
-            << "\"device_class\": \"" << escapeJsonString("power") << "\", "
+    evAttrs << "{\"unit_of_measurement\": \"" << HAIntegration::escapeJsonString("kW") << "\", "
+            << "\"friendly_name\": \"" << HAIntegration::escapeJsonString(evChargerSensor->getName()) << "\", "
+            << "\"device_class\": \"" << HAIntegration::escapeJsonString("power") << "\", "
             << "\"charging\": " << (evChargerSensor->isCharging() ? "true" : "false") << "}";
     haIntegration->publishState("sensor.local_ev_charger_power", 
                                 std::to_string(evChargerSensor->getChargePower()),

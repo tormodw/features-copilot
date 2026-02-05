@@ -65,6 +65,9 @@ public:
     
     // Helper to create HA-compatible JSON command
     static std::string createCommandPayload(const std::string& command, const std::string& data = "");
+    
+    // Helper to escape JSON strings (prevents injection attacks)
+    static std::string escapeJsonString(const std::string& input);
 
 private:
     std::shared_ptr<MQTTClient> mqttClient_;
