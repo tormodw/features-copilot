@@ -33,11 +33,16 @@ add_executable(home_automation
     src/HAIntegration.cpp
 )
 
-# Find mosquitto library
-find_library(MOSQUITTO_LIB mosquitto REQUIRED)
+# Find mosquitto library (optional - using mock implementation)
+find_library(MOSQUITTO_LIB mosquitto)
 
-# Link mosquitto library
-target_link_libraries(home_automation ${MOSQUITTO_LIB})
+# Link mosquitto library if found
+if(MOSQUITTO_LIB)
+    target_link_libraries(home_automation ${MOSQUITTO_LIB})
+    message(STATUS "Mosquitto library found: ${MOSQUITTO_LIB}")
+else()
+    message(STATUS "Mosquitto library not found - using mock MQTT implementation")
+endif()
 
 # Include directories
 target_include_directories(home_automation PRIVATE include)

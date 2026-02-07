@@ -53,12 +53,21 @@ public:
     void publishDiscovery(const std::string& component, const std::string& nodeId, 
                          const std::string& objectId, const std::string& config);
     
+    // Publish sensor state to MQTT (for publishing LOCAL sensor states TO HA)
+    // entityId: HA entity ID for this sensor (e.g., "sensor.local_temperature")
+    // state: State value to publish (e.g., "22.5")
+    // attributes: Optional JSON attributes (e.g., {"unit": "°C", "friendly_name": "Living Room"})
+    void publishState(const std::string& entityId, const std::string& state, const std::string& attributes = "");
+    
     // Helper to parse HA state message (JSON format)
     // Returns: state value and attributes as separate strings
     static bool parseStateMessage(const std::string& payload, std::string& state, std::string& attributes);
     
     // Helper to create HA-compatible JSON command
     static std::string createCommandPayload(const std::string& command, const std::string& data = "");
+    
+    // Helper to escape JSON strings (prevents injection attacks)
+    static std::string escapeJsonString(const std::string& input);
 
 private:
     std::shared_ptr<MQTTClient> mqttClient_;
