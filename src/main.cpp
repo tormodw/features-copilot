@@ -80,6 +80,7 @@ int main() {
         "{\"name\": \"Local Energy Consumption\", \"state_topic\": \"homeassistant/state/sensor.local_energy_consumption\", "
         "\"unit_of_measurement\": \"kW\", \"device_class\": \"power\"}");
     
+<<<<<<< HEAD
     haIntegration->publishDiscovery("sensor", "home_automation", "local_solar_production",
         "{\"name\": \"Local Solar Production\", \"state_topic\": \"homeassistant/state/sensor.local_solar_production\", "
         "\"unit_of_measurement\": \"kW\", \"device_class\": \"power\"}");
@@ -189,6 +190,141 @@ int main() {
         std::cout << "  - Outdoor Temperature: " << newOutdoorTemp << " °C" << std::endl;
         std::cout << "  - Energy Consumption: " << newEnergy << " kW" << std::endl;
         std::cout << "  - Solar Production: " << newSolar << " kW" << std::endl;
+=======
+    std::cout << "Day-ahead optimizer configured" << std::endl << std::endl;
+
+    // Setup MQTT subscriptions for sensors
+    // Parse MQTT payloads and update sensors
+    mqttClient->subscribe("sensor/temperature/indoor", 
+        [&](const std::string& topic, const std::string& payload) {
+            try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
+                double temp = std::stod(payload);
+                if (temp < -50.0 || temp > 100.0) {
+                    std::cerr << "Temperature value out of range from " << topic << ": " << temp << std::endl;
+                    return;
+                }
+                indoorTempSensor->setTemperature(temp);
+                indoorTempSensor->update();
+                std::cout << "Received MQTT message on " << topic << ": " << temp << "°C" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to parse temperature from " << topic << ": " << e.what() << std::endl;
+            }
+        });
+    mqttClient->subscribe("sensor/temperature/outdoor",
+        [&](const std::string& topic, const std::string& payload) {
+            try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
+                double temp = std::stod(payload);
+                if (temp < -50.0 || temp > 100.0) {
+                    std::cerr << "Temperature value out of range from " << topic << ": " << temp << std::endl;
+                    return;
+                }
+                outdoorTempSensor->setTemperature(temp);
+                outdoorTempSensor->update();
+                std::cout << "Received MQTT message on " << topic << ": " << temp << "°C" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to parse temperature from " << topic << ": " << e.what() << std::endl;
+            }
+        });
+    mqttClient->subscribe("sensor/solar/production",
+        [&](const std::string& topic, const std::string& payload) {
+            try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
+                double production = std::stod(payload);
+                if (production < 0.0 || production > 100.0) {
+                    std::cerr << "Solar production value out of range from " << topic << ": " << production << std::endl;
+                    return;
+                }
+                solarSensor->setProduction(production);
+                solarSensor->update();
+                std::cout << "Received MQTT message on " << topic << ": " << production << " kW" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to parse solar production from " << topic << ": " << e.what() << std::endl;
+            }
+        });
+    mqttClient->subscribe("homeassistant/sensor/eva_meter_reader_summation_delivered/state",
+        [&](const std::string& topic, const std::string& payload) {
+            try {
+                if (payload.empty()) {
+                    std::cerr << "Empty payload received from " << topic << std::endl;
+                    return;
+                }
+                double consumption = std::stod(payload);
+                if (consumption < 0.0 || consumption > 1000.0) {
+                    std::cerr << "Energy consumption value out of range from " << topic << ": " << consumption << std::endl;
+                    return;
+                }
+                energyMeter->setConsumption(consumption);
+                energyMeter->update();
+                std::cout << "Received MQTT message on " << topic << ": " << consumption << " kW" << std::endl;
+            } catch (const std::exception& e) {
+                std::cerr << "Failed to parse energy consumption from " << topic << ": " << e.what() << std::endl;
+            }
+        });
+
+    std::cout << "=== Starting simulation ===" << std::endl << std::endl;
+
+    // Simulation loop
+    for (int cycle = 0; cycle < 5; cycle++) {
+        std::cout << "--- Cycle " << (cycle + 1) << " ---" << std::endl;
+
+        // Simulate sensor readings changing over time
+        if (cycle == 0) {
+            // Initial state: cold inside, need heating
+            indoorTempSensor->setTemperature(18.0);
+            outdoorTempSensor->setTemperature(10.0);
+            solarSensor->setProduction(0.0);
+            energyMeter->setConsumption(2.5);
+            evChargerSensor->setCharging(true, 11.0);
+        } else if (cycle == 1) {
+            // Energy cost becomes high
+            indoorTempSensor->setTemperature(19.0);
+            outdoorTempSensor->setTemperature(12.0);
+            solarSensor->setProduction(1.0);
+            energyMeter->setConsumption(3.5);
+        } else if (cycle == 2) {
+            // High solar production
+            indoorTempSensor->setTemperature(21.0);
+            outdoorTempSensor->setTemperature(15.0);
+            solarSensor->setProduction(8.0);
+            energyMeter->setConsumption(4.0);
+        } else if (cycle == 3) {
+            // Temperature reached target, hot outside
+            indoorTempSensor->setTemperature(25.0);
+            outdoorTempSensor->setTemperature(30.0);
+            solarSensor->setProduction(5.0);
+            energyMeter->setConsumption(2.0);
+        } else if (cycle == 4) {
+            // Low energy cost, normal conditions
+            indoorTempSensor->setTemperature(22.0);
+            outdoorTempSensor->setTemperature(20.0);
+            solarSensor->setProduction(3.0);
+            energyMeter->setConsumption(1.5);
+        }
+
+        // Update sensor readings (triggers events)
+        indoorTempSensor->update();
+        outdoorTempSensor->update();
+        solarSensor->update();
+        energyMeter->update();
+        evChargerSensor->update();
+
+        // Update energy cost from API
+        optimizer->updateEnergyCost();
+
+        // Wait before next cycle
+        std::this_thread::sleep_for(std::chrono::seconds(2));
+>>>>>>> 0895525 (Add MQTT subscription for Eva meter reader sensor (homeassistant integration))
     }
     
     std::cout << "\n=== Demo Complete ===" << std::endl;
