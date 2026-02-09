@@ -31,6 +31,7 @@ add_executable(home_automation
     src/DayAheadOptimizer.cpp
     src/HistoricalDataGenerator.cpp
     src/HAIntegration.cpp
+    src/HARestClient.cpp
 )
 
 # Find mosquitto library (optional - using mock implementation)
