@@ -250,6 +250,12 @@ The system includes comprehensive REST API support for extracting sensor data:
 - Production deployment guidelines
 - Security considerations and troubleshooting
 
+**[examples/](examples/)** - Working code examples:
+- **[ha_rest_curl_example.cpp](examples/ha_rest_curl_example.cpp)** - Complete libcurl example demonstrating REST API usage
+- Ready to compile and run with your Home Assistant instance
+- Includes connection testing, sensor queries, historical data retrieval, and service calls
+- See [examples/README.md](examples/README.md) for build instructions
+
 **Use Cases:**
 - **REST API**: Initial state synchronization, historical data, one-time queries
 - **MQTT**: Real-time updates, event-driven automation, efficient continuous monitoring
