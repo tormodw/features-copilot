@@ -31,10 +31,9 @@ private:
     
     // Check if a topic matches a subscription pattern (supports + and # wildcards)
     bool topicMatches(const std::string& pattern, const std::string& topic) const;
-    // Mosquitto-specific members
-    struct mosquitto* mosq_;
-    static void on_connect_callback(struct mosquitto* mosq, void* obj, int result);
-//    static void on_message_callback(struct mosquitto* mosq, void* obj, const struct mosquitto_message* message);
+    
+    // Mock-only member (kept for interface compatibility)
+    void* mosq_;
 };
 
 #endif // MQTT_CLIENT_H

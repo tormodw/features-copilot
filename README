@@ -234,6 +234,27 @@ The system now includes full bidirectional integration with Home Assistant via M
 - Home Assistant configuration for receiving sensor data
 - Testing with MQTT command-line tools
 
+### Home Assistant REST API Integration
+
+The system includes comprehensive REST API support for extracting sensor data:
+
+**[HA_REST_API_GUIDE.md](HA_REST_API_GUIDE.md)** - Complete REST API guide with:
+- How to extract sensor data from Home Assistant using RESTful API
+- Authentication setup with long-lived access tokens
+- Complete API endpoint documentation
+- Working code examples in C++, Python, JavaScript, and Bash
+- Getting single sensor states and all sensors
+- Retrieving historical data from the database
+- Controlling devices via service calls
+- Error handling and best practices
+- Production deployment guidelines
+- Security considerations and troubleshooting
+
+**Use Cases:**
+- **REST API**: Initial state synchronization, historical data, one-time queries
+- **MQTT**: Real-time updates, event-driven automation, efficient continuous monitoring
+- **Recommendation**: Use both for a robust system!
+
 ## License
 
 This is a demonstration project for home automation system design.

@@ -15,6 +15,7 @@
 #include "DayAheadOptimizer.h"
 #include "HistoricalDataGenerator.h"
 #include "HAIntegration.h"
+#include "HARestClient.h"
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -198,6 +199,116 @@ int main() {
     std::cout << "  3. Publish ALL sensor states to MQTT with attributes" << std::endl;
     std::cout << "  4. Automatically publish sensor updates" << std::endl;
     std::cout << "\nAll sensor states are now available in Home Assistant via MQTT!" << std::endl;
+    
+    // ==================== REST API DEMONSTRATION ====================
+    std::cout << "\n\n========================================" << std::endl;
+    std::cout << "=== Home Assistant REST API Demo ===" << std::endl;
+    std::cout << "========================================" << std::endl;
+    std::cout << "\nThis demonstrates extracting sensor data from Home Assistant using REST API" << std::endl;
+    std::cout << "See HA_REST_API_GUIDE.md for detailed documentation and usage examples\n" << std::endl;
+    
+    // Create REST API client
+    // In production: Use environment variables for credentials
+    // Example: const char* token = std::getenv("HA_TOKEN");
+    std::string haUrl = "http://192.168.1.100:8123";
+    std::string haToken = "YOUR_LONG_LIVED_ACCESS_TOKEN_HERE";
+    
+    auto haRestClient = std::make_shared<HARestClient>(haUrl, haToken);
+    
+    std::cout << "=== Step 1: Testing Connection ===" << std::endl;
+    bool connected = haRestClient->testConnection();
+    if (connected) {
+        std::cout << "✓ Successfully connected to Home Assistant REST API\n" << std::endl;
+    } else {
+        std::cout << "✗ Failed to connect to Home Assistant REST API" << std::endl;
+        std::cout << "  (This is expected in simulation mode)\n" << std::endl;
+    }
+    
+    std::cout << "=== Step 2: Getting Single Sensor State ===" << std::endl;
+    std::cout << "Fetching living room temperature sensor...\n" << std::endl;
+    
+    HASensorData tempData = haRestClient->getSensorState("sensor.living_room_temperature");
+    std::cout << "Sensor Data Retrieved:" << std::endl;
+    std::cout << "  Entity ID: " << tempData.entityId << std::endl;
+    std::cout << "  State: " << tempData.state << " " << tempData.unitOfMeasurement << std::endl;
+    std::cout << "  Friendly Name: " << tempData.friendlyName << std::endl;
+    std::cout << "  Device Class: " << tempData.deviceClass << "\n" << std::endl;
+    
+    std::cout << "=== Step 3: Getting All Sensors ===" << std::endl;
+    std::cout << "Fetching all sensors from Home Assistant...\n" << std::endl;
+    
+    auto allSensors = haRestClient->getAllSensors();
+    std::cout << "Found " << allSensors.size() << " sensors:" << std::endl;
+    for (const auto& sensor : allSensors) {
+        std::cout << "  - " << sensor.entityId << ": " 
+                  << sensor.state << " " << sensor.unitOfMeasurement << std::endl;
+    }
+    std::cout << std::endl;
+    
+    std::cout << "=== Step 4: Getting Historical Data ===" << std::endl;
+    std::cout << "Fetching 24-hour history for energy consumption...\n" << std::endl;
+    
+    // Get data from 24 hours ago
+    long startTime = std::time(nullptr) - (24 * 3600);
+    auto history = haRestClient->getHistory("sensor.energy_consumption", startTime);
+    
+    std::cout << "Historical Data Points: " << history.size() << std::endl;
+    if (!history.empty()) {
+        std::cout << "Sample data points:" << std::endl;
+        for (size_t i = 0; i < std::min(size_t(3), history.size()); i++) {
+            std::cout << "  - " << history[i].entityId << ": " 
+                      << history[i].state << std::endl;
+        }
+    }
+    std::cout << std::endl;
+    
+    std::cout << "=== Step 5: Calling a Service (Control a Device) ===" << std::endl;
+    std::cout << "Turning on the heater switch...\n" << std::endl;
+    
+    bool serviceSuccess = haRestClient->callService("switch", "turn_on", "switch.heater");
+    if (serviceSuccess) {
+        std::cout << "✓ Service call successful - Heater turned on" << std::endl;
+    } else {
+        std::cout << "✗ Service call failed" << std::endl;
+    }
+    std::cout << std::endl;
+    
+    std::cout << "=== Step 6: Advanced Service Call with Data ===" << std::endl;
+    std::cout << "Turning on living room light with brightness...\n" << std::endl;
+    
+    std::string lightData = "\"brightness\": 200";
+    bool lightSuccess = haRestClient->callService("light", "turn_on", "light.living_room", lightData);
+    if (lightSuccess) {
+        std::cout << "✓ Light turned on with brightness 200" << std::endl;
+    } else {
+        std::cout << "✗ Failed to control light" << std::endl;
+    }
+    std::cout << std::endl;
+    
+    std::cout << "=== REST API Demo Summary ===" << std::endl;
+    std::cout << "\nThis demonstration showed how to:" << std::endl;
+    std::cout << "  1. ✓ Connect to Home Assistant REST API" << std::endl;
+    std::cout << "  2. ✓ Extract single sensor data (temperature)" << std::endl;
+    std::cout << "  3. ✓ Get all sensors at once" << std::endl;
+    std::cout << "  4. ✓ Retrieve historical data (24-hour history)" << std::endl;
+    std::cout << "  5. ✓ Control devices (turn on switch)" << std::endl;
+    std::cout << "  6. ✓ Send complex commands with data (light brightness)" << std::endl;
+    
+    std::cout << "\n📚 For complete documentation and production examples, see:" << std::endl;
+    std::cout << "   - HA_REST_API_GUIDE.md (Comprehensive REST API guide)" << std::endl;
+    std::cout << "   - HA_MQTT_INTEGRATION.md (Real-time MQTT integration)" << std::endl;
+    
+    std::cout << "\n💡 Production Deployment Notes:" << std::endl;
+    std::cout << "   - Replace mock HTTP client with libcurl or cpp-httplib" << std::endl;
+    std::cout << "   - Store access token in environment variables" << std::endl;
+    std::cout << "   - Use HTTPS for secure communication" << std::endl;
+    std::cout << "   - Implement proper JSON parsing (nlohmann/json)" << std::endl;
+    std::cout << "   - Add error handling and retry logic" << std::endl;
+    std::cout << "   - Consider using MQTT for real-time updates" << std::endl;
+    
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "=== All Demos Complete ===" << std::endl;
+    std::cout << "========================================\n" << std::endl;
     
     return 0;
 }
