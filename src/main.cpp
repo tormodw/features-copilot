@@ -208,10 +208,20 @@ int main() {
     std::cout << "See HA_REST_API_GUIDE.md for detailed documentation and usage examples\n" << std::endl;
     
     // Create REST API client
-    // In production: Use environment variables for credentials
-    // Example: const char* token = std::getenv("HA_TOKEN");
-    std::string haUrl = "http://192.168.1.100:8123";
-    std::string haToken = "YOUR_LONG_LIVED_ACCESS_TOKEN_HERE";
+    // For production: Use environment variables for credentials
+    // Set HA_URL and HA_TOKEN environment variables before running
+    const char* haUrlEnv = std::getenv("HA_URL");
+    const char* haTokenEnv = std::getenv("HA_TOKEN");
+    
+    std::string haUrl = haUrlEnv ? haUrlEnv : "http://192.168.1.100:8123";
+    std::string haToken = haTokenEnv ? haTokenEnv : "DEMO_MODE_NO_REAL_TOKEN";
+    
+    if (!haTokenEnv) {
+        std::cout << "\n⚠️  Note: Using demo mode without real Home Assistant credentials." << std::endl;
+        std::cout << "   For production, set environment variables:" << std::endl;
+        std::cout << "   export HA_URL='http://your-ha-ip:8123'" << std::endl;
+        std::cout << "   export HA_TOKEN='your_long_lived_access_token'\n" << std::endl;
+    }
     
     auto haRestClient = std::make_shared<HARestClient>(haUrl, haToken);
     
