@@ -23,6 +23,7 @@ cmake-build-*/
 *.out
 *.app
 home_automation
+examples/ha_rest_example
 
 # CMake
 CMakeCache.txt
@@ -31,6 +32,7 @@ cmake_install.cmake
 Makefile
 *.cmake
 !CMakeLists.txt
+!examples/Makefile
 
 # IDE
 .vscode/

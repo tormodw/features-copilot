@@ -253,6 +253,10 @@ curl -X GET \
 
 ### C++ Example with libcurl
 
+> **💡 Working Example Available:** A complete, ready-to-compile example is available in [`examples/ha_rest_curl_example.cpp`](examples/ha_rest_curl_example.cpp). See [`examples/README.md`](examples/README.md) for build instructions and usage guide.
+
+**Basic Example:**
+
 ```cpp
 #include <curl/curl.h>
 #include <string>
