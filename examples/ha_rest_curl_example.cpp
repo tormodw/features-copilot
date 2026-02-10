@@ -374,7 +374,7 @@ int main() {
     
     // Example 2: Get single sensor state
     std::cout << "2. Getting temperature sensor state..." << std::endl;
-    std::string tempResponse = client.getSensorState("sensor.living_room_temperature");
+    std::string tempResponse = client.getSensorState("sensor.shellyhtg3_e4b3232d5348_temperature");
     if (!tempResponse.empty() && tempResponse.find("entity_id") != std::string::npos) {
         std::cout << "   Response: " << std::endl;
         printSensorState(tempResponse);
@@ -385,7 +385,7 @@ int main() {
     
     // Example 3: Get another sensor
     std::cout << "3. Getting energy consumption sensor..." << std::endl;
-    std::string energyResponse = client.getSensorState("sensor.energy_consumption");
+    std::string energyResponse = client.getSensorState("sensor.eva_meter_reader_summation_delivered");
     if (!energyResponse.empty() && energyResponse.find("entity_id") != std::string::npos) {
         std::cout << "   Response: " << std::endl;
         printSensorState(energyResponse);
@@ -416,8 +416,8 @@ int main() {
     // Example 5: Get historical data
     std::cout << "5. Getting historical data (last 24 hours)..." << std::endl;
     // ISO 8601 format: 2024-01-15T00:00:00+00:00
-    std::string startTime = "2024-01-15T00:00:00+00:00";
-    std::string history = client.getHistory("sensor.energy_consumption", startTime);
+    std::string startTime = "2026-01-15T00:00:00+00:00";
+    std::string history = client.getHistory("sensor.eva_meter_reader_summation_delivered", startTime);
     if (!history.empty() && history.find("[") != std::string::npos) {
         // Count data points (simplified)
         size_t pointCount = 0;
@@ -427,8 +427,8 @@ int main() {
             pos++;
         }
         std::cout << "   Found approximately " << pointCount << " historical data points" << std::endl;
-        std::cout << "   (Showing first 300 characters of response)" << std::endl;
-        std::cout << "   " << history.substr(0, 300) << "..." << std::endl;
+        std::cout << "   (Showing first 600 characters of response)" << std::endl;
+        std::cout << "   " << history.substr(0, 600) << "..." << std::endl;
     } else {
         std::cout << "   Failed to get history" << std::endl;
     }
