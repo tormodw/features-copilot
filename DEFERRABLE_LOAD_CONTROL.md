@@ -6,7 +6,7 @@ This guide describes the new **Deferrable Load Control** feature that allows the
 
 ## Problem Statement
 
-"Add functions using DayAhead optimization and historical data to control (switch off) deferrable loads during busy hours (or) when energy price raises above a certain level."
+"Add functions using DayAhead optimization and historical data to control (switch off) deferrable loads during busy hours (or) when energy price rises above a certain level."
 
 ## Solution Delivered
 
