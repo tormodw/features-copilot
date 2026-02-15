@@ -1,6 +1,7 @@
 #ifndef HA_REST_CLIENT_H
 #define HA_REST_CLIENT_H
 
+#include <curl/curl.h>
 #include <string>
 #include <vector>
 #include <functional>
@@ -31,6 +32,8 @@ struct HAHistoricalData {
 class HARestClient {
 public:
     HARestClient(const std::string& baseUrl, const std::string& token);
+
+    ~HARestClient();
     
     // Get current state of a specific sensor
     HASensorData getSensorState(const std::string& entityId);

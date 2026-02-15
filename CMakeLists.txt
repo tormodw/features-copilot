@@ -45,6 +45,15 @@ else()
     message(STATUS "Mosquitto library not found - using mock MQTT implementation")
 endif()
 
+find_library(CURL_LIB curl)
+# Link curl library if found
+if(CURL_LIB)
+    target_link_libraries(home_automation ${CURL_LIB})
+    message(STATUS "Curl library found: ${CURL_LIB}")
+else()
+    message(STATUS "Curl library not found - using mock CURL implementation")
+endif()
+
 # Include directories
 target_include_directories(home_automation PRIVATE include)
 

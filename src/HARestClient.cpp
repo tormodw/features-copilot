@@ -3,18 +3,33 @@
 #include <sstream>
 #include <ctime>
 
+// Callback function for curl to write response data
+static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* userp) {
+    userp->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
 HARestClient::HARestClient(const std::string& baseUrl, const std::string& token)
     : baseUrl_(baseUrl), token_(token) {
+    // Initialize curl globally (once per program)
+    curl_global_init(CURL_GLOBAL_DEFAULT);
+
     // Remove trailing slash from base URL if present
     if (!baseUrl_.empty() && baseUrl_.back() == '/') {
         baseUrl_.pop_back();
     }
 }
 
+HARestClient::~HARestClient() {
+        // Cleanup curl globally
+        curl_global_cleanup();
+}
+
+
 HASensorData HARestClient::getSensorState(const std::string& entityId) {
     std::cout << "HARestClient: Fetching state for " << entityId << std::endl;
     
-    std::string endpoint = "/api/states/" + entityId;
+    std::string endpoint = baseUrl_ + "/api/states/" + entityId;
     std::string response = httpGet(endpoint);
     
     return parseSensorData(response);
@@ -23,7 +38,7 @@ HASensorData HARestClient::getSensorState(const std::string& entityId) {
 std::vector<HASensorData> HARestClient::getAllSensors() {
     std::cout << "HARestClient: Fetching all sensors" << std::endl;
     
-    std::string response = httpGet("/api/states");
+    std::string response = httpGet(baseUrl_ + "/api/states");
     std::vector<HASensorData> allStates = parseMultipleSensors(response);
     
     // Filter for sensors only
@@ -40,7 +55,7 @@ std::vector<HASensorData> HARestClient::getAllSensors() {
 std::vector<HASensorData> HARestClient::getAllStates() {
     std::cout << "HARestClient: Fetching all entity states" << std::endl;
     
-    std::string response = httpGet("/api/states");
+    std::string response = httpGet(baseUrl_ + "/api/states");
     return parseMultipleSensors(response);
 }
 
@@ -52,7 +67,7 @@ std::vector<HAHistoricalData> HARestClient::getHistory(const std::string& entity
     std::time_t t = startTimestamp;
     std::strftime(timeStr, sizeof(timeStr), "%Y-%m-%dT%H:%M:%S+00:00", std::gmtime(&t));
     
-    std::string endpoint = "/api/history/period/" + std::string(timeStr) + 
+    std::string endpoint = baseUrl_ + "/api/history/period/" + std::string(timeStr) + 
                           "?filter_entity_id=" + entityId;
     std::string response = httpGet(endpoint);
     
@@ -64,7 +79,7 @@ bool HARestClient::callService(const std::string& domain, const std::string& ser
     std::cout << "HARestClient: Calling service " << domain << "." << service 
               << " on " << entityId << std::endl;
     
-    std::string endpoint = "/api/services/" + domain + "/" + service;
+    std::string endpoint = baseUrl_ + "/api/services/" + domain + "/" + service;
     
     // Build JSON payload
     std::string payload = "{\"entity_id\": \"" + entityId + "\"";
@@ -83,9 +98,11 @@ bool HARestClient::testConnection() {
     std::cout << "HARestClient: Testing connection to Home Assistant" << std::endl;
     
     try {
-        std::string response = httpGet("/api/");
-        return response.find("API running") != std::string::npos || 
-               response.find("message") != std::string::npos;
+        std::string url = baseUrl_+"/api/";
+        std::string response = httpGet(url);
+        return !response.empty() && 
+               (response.find("API running") != std::string::npos || 
+               response.find("message") != std::string::npos);
     } catch (...) {
         return false;
     }
@@ -93,6 +110,139 @@ bool HARestClient::testConnection() {
 
 // Private helper methods
 
+/**
+ * Perform HTTP GET request
+ * 
+ * @param url Full URL to request
+ * @return Response body as string
+ */
+std::string HARestClient::httpGet(const std::string& url) {
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+    long httpCode = 0;
+    
+    curl = curl_easy_init();
+    
+    if(curl) {
+        // Prepare authorization header
+        std::string authHeader = "Authorization: Bearer " + token_;
+        
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, authHeader.c_str());
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        
+        // Set curl options
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        
+        // Set timeouts
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);           // 10 second timeout
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);     // 5 second connect timeout
+        
+        // For HTTPS, verify SSL certificate (set to 0 to disable for self-signed certs)
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+        
+        // Perform the request
+        res = curl_easy_perform(curl);
+        
+        // Check for errors
+        if(res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        } else {
+            // Get HTTP response code
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+            
+            if (httpCode == 200) {
+                // Success
+            } else if (httpCode == 401) {
+                std::cerr << "Authentication failed (401): Invalid token" << std::endl;
+            } else if (httpCode == 404) {
+                std::cerr << "Not found (404): Entity may not exist" << std::endl;
+            } else {
+                std::cerr << "HTTP error: " << httpCode << std::endl;
+            }
+        }
+        
+        // Cleanup
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    }
+    
+    return readBuffer;
+}
+    
+/**
+ * Perform HTTP POST request
+ * 
+ * @param url Full URL to request
+ * @param data POST data (JSON string)
+ * @return Response body as string
+ */
+std::string HARestClient::httpPost(const std::string& url, const std::string& data) {
+    CURL* curl;
+    CURLcode res;
+    std::string readBuffer;
+    long httpCode = 0;
+    
+    curl = curl_easy_init();
+    
+    if(curl) {
+        // Prepare authorization header
+        std::string authHeader = "Authorization: Bearer " + token_;
+        
+        struct curl_slist* headers = NULL;
+        headers = curl_slist_append(headers, authHeader.c_str());
+        headers = curl_slist_append(headers, "Content-Type: application/json");
+        
+        // Set curl options
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        
+        // Set POST data
+        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+        
+        // Set timeouts
+        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
+        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+        
+        // For HTTPS
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+        curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+        
+        // Perform the request
+        res = curl_easy_perform(curl);
+        
+        // Check for errors
+        if(res != CURLE_OK) {
+            std::cerr << "curl_easy_perform() failed: " << curl_easy_strerror(res) << std::endl;
+        } else {
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &httpCode);
+            
+            if (httpCode == 200 || httpCode == 201) {
+                // Success
+            } else if (httpCode == 401) {
+                std::cerr << "Authentication failed (401): Invalid token" << std::endl;
+            } else {
+                std::cerr << "HTTP error: " << httpCode << std::endl;
+            }
+        }
+        
+        // Cleanup
+        curl_slist_free_all(headers);
+        curl_easy_cleanup(curl);
+    }
+    
+    return readBuffer;
+}
+
+
+#if 0
 std::string HARestClient::httpGet(const std::string& endpoint) {
     // In production: Use libcurl to make actual HTTP GET request
     // For simulation: Return mock data based on endpoint
@@ -240,6 +390,8 @@ std::string HARestClient::httpPost(const std::string& endpoint, const std::strin
     // Mock: Return success for service calls
     return R"([{"success": true}])";
 }
+
+#endif
 
 HASensorData HARestClient::parseSensorData(const std::string& jsonResponse) {
     // In production: Use proper JSON library like nlohmann/json

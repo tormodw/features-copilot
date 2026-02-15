@@ -237,7 +237,7 @@ int main() {
     std::cout << "=== Step 2: Getting Single Sensor State ===" << std::endl;
     std::cout << "Fetching living room temperature sensor...\n" << std::endl;
     
-    HASensorData tempData = haRestClient->getSensorState("sensor.living_room_temperature");
+    HASensorData tempData = haRestClient->getSensorState("sensor.shellyhtg3_e4b3232d5348_temperature");
     std::cout << "Sensor Data Retrieved:" << std::endl;
     std::cout << "  Entity ID: " << tempData.entityId << std::endl;
     std::cout << "  State: " << tempData.state << " " << tempData.unitOfMeasurement << std::endl;
@@ -260,7 +260,7 @@ int main() {
     
     // Get data from 24 hours ago
     long startTime = std::time(nullptr) - (24 * 3600);
-    auto history = haRestClient->getHistory("sensor.energy_consumption", startTime);
+    auto history = haRestClient->getHistory("sensor.eva_meter_reader_summation_delivered", startTime);
     
     std::cout << "Historical Data Points: " << history.size() << std::endl;
     if (!history.empty()) {
