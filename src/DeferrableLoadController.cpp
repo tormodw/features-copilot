@@ -4,8 +4,8 @@
 
 DeferrableLoadController::DeferrableLoadController(std::shared_ptr<MLPredictor> predictor)
     : predictor_(predictor),
-      priceThreshold_(0.15),      // Default: $0.15/kWh
-      busyHourThreshold_(0.13) {  // Default: $0.13/kWh for busy hour identification
+      priceThreshold_(DeferrableLoadDefaults::DEFAULT_PRICE_THRESHOLD),
+      busyHourThreshold_(DeferrableLoadDefaults::DEFAULT_BUSY_HOUR_THRESHOLD) {
 }
 
 void DeferrableLoadController::setPriceThreshold(double threshold) {

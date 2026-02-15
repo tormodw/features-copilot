@@ -264,6 +264,15 @@ Based on typical usage patterns:
 - **30-50%** reduction in deferrable load energy costs
 - Larger savings during periods of high price volatility
 
+**Note**: Actual cost savings will vary significantly based on:
+- Local energy pricing structure and time-of-use rates
+- Proportion of deferrable vs. non-deferrable loads
+- User behavior and usage patterns
+- Configuration of thresholds and historical data quality
+- Geographic location and seasonal factors
+
+The percentages above represent potential savings in environments with time-of-use pricing and a significant proportion of deferrable loads (EV charging, pool pumps, etc.).
+
 ### Grid Benefits
 
 - Reduced peak demand (flattens demand curve)

@@ -331,7 +331,8 @@ int main() {
     // Setup ML predictor and historical data
     std::cout << "=== Step 1: Training ML Model ===" << std::endl;
     auto mlPredictor = std::make_shared<MLPredictor>();
-    auto historicalData = HistoricalDataGenerator::generateSampleData(30);
+    auto historicalData = HistoricalDataGenerator::generateSampleData(
+        DeferrableLoadDefaults::DEFAULT_TRAINING_DATA_DAYS);
     mlPredictor->train(historicalData);
     std::cout << "ML model trained with " << historicalData.size() << " data points\n" << std::endl;
     

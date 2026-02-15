@@ -9,6 +9,13 @@
 #include <map>
 #include <iostream>
 
+// Default configuration constants
+namespace DeferrableLoadDefaults {
+    constexpr double DEFAULT_PRICE_THRESHOLD = 0.15;        // $0.15/kWh
+    constexpr double DEFAULT_BUSY_HOUR_THRESHOLD = 0.13;    // $0.13/kWh
+    constexpr int DEFAULT_TRAINING_DATA_DAYS = 30;          // 30 days
+}
+
 // Busy hour analysis result
 struct BusyHourAnalysis {
     std::vector<int> busyHours;         // Hours identified as busy (high price/demand)
