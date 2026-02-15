@@ -32,6 +32,21 @@ add_executable(home_automation
     src/HistoricalDataGenerator.cpp
     src/HAIntegration.cpp
     src/HARestClient.cpp
+    src/DeferrableLoadController.cpp
+)
+
+# Add test executable for deferrable loads
+add_executable(test_deferrable_loads
+    src/test_deferrable_loads.cpp
+    src/Appliance.cpp
+    src/Light.cpp
+    src/Heater.cpp
+    src/AirConditioner.cpp
+    src/EVCharger.cpp
+    src/MLPredictor.cpp
+    src/DayAheadOptimizer.cpp
+    src/HistoricalDataGenerator.cpp
+    src/DeferrableLoadController.cpp
 )
 
 # Find mosquitto library (optional - using mock implementation)
