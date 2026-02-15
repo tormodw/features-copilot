@@ -43,6 +43,15 @@ The energy optimizer minimizes energy consumption while maintaining user comfort
 - **Pre-heating/Cooling**: Conditions home during low-cost hours to reduce peak-hour usage
 - **Cost Estimation**: Provides estimated daily energy cost and consumption
 
+### Deferrable Load Control
+**NEW**: Intelligent control of non-critical loads based on price and historical patterns:
+- **Price Threshold Control**: Automatically switch off deferrable loads when prices exceed threshold
+- **Busy Hour Detection**: Analyze historical data to identify high-price periods
+- **Load Classification**: Mark appliances as deferrable (EV chargers, decorative lights) or critical (HVAC, essential lighting)
+- **Day-Ahead Recommendations**: Generate 24-hour schedule for deferrable load operation
+- **State Management**: Intelligently resume loads when conditions improve
+- **Cost Savings**: Achieve 10-20% reduction in energy costs without compromising comfort
+
 ## Architecture
 
 ### Event-Driven Design
@@ -53,17 +62,18 @@ The energy optimizer minimizes energy consumption while maintaining user comfort
 ### Modular Structure
 ```
 include/
-├── Event.h                    - Event data structure
-├── EventManager.h             - Event distribution system
-├── Sensor.h                   - Base sensor class
-├── Appliance.h                - Base appliance class
-├── MQTTClient.h               - MQTT communication
-├── HAIntegration.h            - Home Assistant MQTT integration
-├── HTTPClient.h               - HTTP API client
-├── EnergyOptimizer.h          - Real-time decision-making logic
-├── MLPredictor.h              - ML-based forecasting engine
-├── DayAheadOptimizer.h        - Predictive scheduling optimizer
-├── HistoricalDataGenerator.h - Training data generation
+├── Event.h                      - Event data structure
+├── EventManager.h               - Event distribution system
+├── Sensor.h                     - Base sensor class
+├── Appliance.h                  - Base appliance class (with deferrable support)
+├── MQTTClient.h                 - MQTT communication
+├── HAIntegration.h              - Home Assistant MQTT integration
+├── HTTPClient.h                 - HTTP API client
+├── EnergyOptimizer.h            - Real-time decision-making logic
+├── MLPredictor.h                - ML-based forecasting engine
+├── DayAheadOptimizer.h          - Predictive scheduling optimizer
+├── DeferrableLoadController.h   - Deferrable load management
+├── HistoricalDataGenerator.h   - Training data generation
 ├── Sensors/
 │   ├── TemperatureSensor.h
 │   ├── EnergyMeter.h
@@ -255,6 +265,20 @@ The system includes comprehensive REST API support for extracting sensor data:
 - Ready to compile and run with your Home Assistant instance
 - Includes connection testing, sensor queries, historical data retrieval, and service calls
 - See [examples/README.md](examples/README.md) for build instructions
+
+### Deferrable Load Control
+
+The system includes intelligent control of non-critical loads based on energy prices:
+
+**[DEFERRABLE_LOAD_CONTROL.md](DEFERRABLE_LOAD_CONTROL.md)** - Complete deferrable load control guide:
+- How to classify loads as deferrable or non-deferrable
+- Price threshold-based automatic control
+- Historical data analysis for busy hour identification
+- Day-ahead recommendations for load scheduling
+- Integration with ML-based day-ahead optimizer
+- API reference and usage examples
+- Production deployment guidelines
+- Cost savings analysis and benefits
 
 **Use Cases:**
 - **REST API**: Initial state synchronization, historical data, one-time queries

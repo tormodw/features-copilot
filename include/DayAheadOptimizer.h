@@ -6,6 +6,7 @@
 #include "EVCharger.h"
 #include "Heater.h"
 #include "AirConditioner.h"
+#include "DeferrableLoadController.h"
 #include <memory>
 #include <vector>
 #include <map>
@@ -39,6 +40,9 @@ public:
     void addAppliance(std::shared_ptr<Appliance> appliance);
     void setTargetTemperature(double temp);
     void setEVChargingHoursNeeded(int hours);
+    
+    // Set deferrable load controller
+    void setDeferrableLoadController(std::shared_ptr<DeferrableLoadController> controller);
 
     // Generate optimal schedule for next 24 hours
     DayAheadSchedule generateSchedule(int currentHour, int currentDayOfWeek);
@@ -51,6 +55,7 @@ private:
                      DayAheadSchedule& schedule);
 
     std::shared_ptr<MLPredictor> predictor_;
+    std::shared_ptr<DeferrableLoadController> deferrableController_;
     std::vector<std::shared_ptr<Appliance>> appliances_;
     double targetIndoorTemp_;
     double highCostThreshold_;

@@ -18,12 +18,17 @@ public:
     bool isEnabled() const;
     void setEnabled(bool enabled);
     double getPowerConsumption() const;
+    
+    // Deferrable load management
+    bool isDeferrable() const;
+    void setDeferrable(bool deferrable);
 
 protected:
     std::string id_;
     std::string name_;
     bool enabled_;
     double powerConsumption_; // in kW
+    bool deferrable_;          // Can this load be deferred/switched off during high prices
 };
 
 #endif // APPLIANCE_H
