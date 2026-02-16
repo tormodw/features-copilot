@@ -33,6 +33,8 @@ add_executable(home_automation
     src/HAIntegration.cpp
     src/HARestClient.cpp
     src/DeferrableLoadController.cpp
+    src/HistoricalDataCollector.cpp
+    src/MLTrainingScheduler.cpp
 )
 
 # Add test executable for deferrable loads
@@ -47,6 +49,15 @@ add_executable(test_deferrable_loads
     src/DayAheadOptimizer.cpp
     src/HistoricalDataGenerator.cpp
     src/DeferrableLoadController.cpp
+)
+
+# Add test executable for continuous ML training
+add_executable(test_continuous_training
+    src/test_continuous_training.cpp
+    src/MLPredictor.cpp
+    src/HistoricalDataGenerator.cpp
+    src/HistoricalDataCollector.cpp
+    src/MLTrainingScheduler.cpp
 )
 
 # Find mosquitto library (optional - using mock implementation)
