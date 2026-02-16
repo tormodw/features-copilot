@@ -42,9 +42,12 @@ void HistoricalDataCollector::recordCurrentState(double outdoorTemp, double sola
     
     addDataPoint(point);
     
-    std::cout << "HistoricalDataCollector: Recorded data point - Hour: " << hour 
-              << ", Cost: $" << energyCost << "/kWh, Solar: " << solarProduction 
-              << " kW, Temp: " << outdoorTemp << "°C" << std::endl;
+    // Only log if verbose logging is enabled (avoid performance impact)
+    if (config_.verboseLogging) {
+        std::cout << "HistoricalDataCollector: Recorded data point - Hour: " << hour 
+                  << ", Cost: $" << energyCost << "/kWh, Solar: " << solarProduction 
+                  << " kW, Temp: " << outdoorTemp << "°C" << std::endl;
+    }
 }
 
 std::vector<HistoricalDataPoint> HistoricalDataCollector::getAllData() const {
@@ -68,13 +71,10 @@ size_t HistoricalDataCollector::getDataPointCount() const {
 }
 
 void HistoricalDataCollector::cleanupOldData() {
-    size_t maxPoints = config_.maxDaysToRetain * 24;
-    
-    if (dataPoints_.size() > maxPoints) {
-        size_t toRemove = dataPoints_.size() - maxPoints;
-        std::cout << "HistoricalDataCollector: Removing " << toRemove 
+    size_t removed = removeOldDataPoints();
+    if (removed > 0) {
+        std::cout << "HistoricalDataCollector: Removing " << removed 
                   << " old data points" << std::endl;
-        dataPoints_.erase(dataPoints_.begin(), dataPoints_.begin() + toRemove);
     }
 }
 

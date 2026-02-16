@@ -16,6 +16,7 @@ struct DataCollectionConfig {
     bool enablePersistence = true;      // Save to file
     std::string persistenceFile = "historical_data.csv";
     int collectionIntervalMinutes = 60; // Collect data every hour
+    bool verboseLogging = false;        // Enable verbose logging (disable in production)
 };
 
 // Collector for accumulating historical data during runtime

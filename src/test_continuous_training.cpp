@@ -70,6 +70,7 @@ int main() {
     collectorConfig.maxDaysToRetain = 90;
     collectorConfig.enablePersistence = true;
     collectorConfig.persistenceFile = "test_historical_data.csv";
+    collectorConfig.verboseLogging = true;  // Enable verbose logging for demo
     auto collector = std::make_shared<HistoricalDataCollector>(collectorConfig);
     
     TrainingScheduleConfig scheduleConfig;
@@ -166,7 +167,10 @@ int main() {
               << (collectorConfig.maxDaysToRetain * 24) << " data points)" << std::endl;
     
     // Simulate a lot more data to trigger cleanup
-    std::cout << "\nSimulating long-term operation (90+ days of data)..." << std::endl;
+    // Note: This simulates 100 days (2400 hours) of data collection to demonstrate
+    // the retention policy. In production, this would occur naturally over time.
+    std::cout << "\nSimulating long-term operation (100 days = 2400 hours of data)..." << std::endl;
+    std::cout << "This demonstrates automatic cleanup of old data..." << std::endl;
     simulateDataCollection(collector, 100 * 24, false);
     
     std::cout << "After long-term simulation: " << collector->getDataPointCount() 

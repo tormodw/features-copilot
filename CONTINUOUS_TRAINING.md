@@ -398,12 +398,13 @@ make test_continuous_training
 ```
 
 The test demonstrates:
-1. Initial training with sample data
-2. Continuous data collection (2400+ points)
-3. Multiple retraining cycles
-4. Data persistence and loading
-5. Automatic retention management
-6. Recent data retrieval
+1. Initial training with sample data (7 days = 168 points)
+2. Continuous data collection (48 hours in phases 3-6)
+3. Long-term simulation (100 days = 2400 hours total in phase 7)
+4. Multiple retraining cycles with growing dataset
+5. Data persistence and loading from file
+6. Automatic retention management (enforces 90-day limit)
+7. Recent data retrieval (7-day and 30-day windows)
 
 ## API Reference
 
