@@ -201,7 +201,17 @@ The system is designed for easy extension:
 
 ## Configuration
 
-The system can be configured by:
+The system includes a comprehensive configuration management system with a web-based interface:
+
+**[CONFIG_SYSTEM.md](CONFIG_SYSTEM.md)** - Complete configuration system guide:
+- Config class for managing system settings
+- Web interface for easy configuration (accessible at http://localhost:8080)
+- Configure deferrable loads, MQTT settings, and sensors
+- REST API for programmatic configuration
+- Persistent configuration storage in JSON format
+- Real-time configuration updates
+
+The system can also be configured programmatically by:
 - Adjusting thresholds in `EnergyOptimizer` (cost thresholds, temperature targets)
 - Setting `evChargingHoursNeeded_` in `DayAheadOptimizer`
 - Training ML model with more historical data
@@ -212,12 +222,13 @@ The system can be configured by:
 ## Production Deployment
 
 For production use, integrate:
+- **Configuration System**: Web-based configuration interface (see [CONFIG_SYSTEM.md](CONFIG_SYSTEM.md))
 - **MQTT Library**: Eclipse Paho MQTT or mosquitto (see [MQTT_MOSQUITTO_GUIDE.md](MQTT_MOSQUITTO_GUIDE.md) for integration instructions)
 - **Home Assistant**: Connect to real HA instance via MQTT (see [HA_MQTT_INTEGRATION.md](HA_MQTT_INTEGRATION.md) for complete guide)
 - **HTTP Library**: libcurl or cpp-httplib
 - **Database**: Store historical data and analytics
-- **Web Interface**: Control panel for monitoring and manual control
-- **Security**: TLS/SSL for MQTT and HTTP communications
+- **Web Interface**: Built-in configuration web interface or custom control panel for monitoring
+- **Security**: TLS/SSL for MQTT and HTTP communications, authentication for web interface
 
 ### MQTT Integration with Mosquitto
 
