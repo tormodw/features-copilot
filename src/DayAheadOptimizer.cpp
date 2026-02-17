@@ -24,6 +24,7 @@ std::vector<ScheduledAction> DayAheadSchedule::getActionsForHour(int hour) const
 
 DayAheadOptimizer::DayAheadOptimizer(std::shared_ptr<MLPredictor> predictor)
     : predictor_(predictor), 
+      deferrableController_(nullptr),
       targetIndoorTemp_(22.0),
       highCostThreshold_(0.15),
       lowCostThreshold_(0.10),
@@ -39,6 +40,10 @@ void DayAheadOptimizer::setTargetTemperature(double temp) {
 
 void DayAheadOptimizer::setEVChargingHoursNeeded(int hours) {
     evChargingHoursNeeded_ = hours;
+}
+
+void DayAheadOptimizer::setDeferrableLoadController(std::shared_ptr<DeferrableLoadController> controller) {
+    deferrableController_ = controller;
 }
 
 DayAheadSchedule DayAheadOptimizer::generateSchedule(int currentHour, int currentDayOfWeek) {
@@ -124,6 +129,22 @@ void DayAheadOptimizer::optimizeHour(const HourlyForecast& forecast,
     int hour = forecast.hour;
     double cost = forecast.predictedEnergyCost;
     double solar = forecast.predictedSolarProduction;
+    
+    // Deferrable load optimization - NEW FEATURE
+    if (deferrableController_) {
+        auto deferrableLoads = deferrableController_->getDeferrableLoads();
+        for (const auto& load : deferrableLoads) {
+            if (cost > highCostThreshold_) {
+                schedule.addAction(hour, load->getId(), "off", 0,
+                                 "Deferrable load - switched off during high price ($" + 
+                                 std::to_string(cost) + "/kWh)");
+            } else {
+                schedule.addAction(hour, load->getId(), "on", 0,
+                                 "Deferrable load - allowed during optimal price ($" + 
+                                 std::to_string(cost) + "/kWh)");
+            }
+        }
+    }
     
     // EV Charging optimization
     for (auto& appliance : appliances_) {

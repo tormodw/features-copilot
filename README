@@ -43,6 +43,24 @@ The energy optimizer minimizes energy consumption while maintaining user comfort
 - **Pre-heating/Cooling**: Conditions home during low-cost hours to reduce peak-hour usage
 - **Cost Estimation**: Provides estimated daily energy cost and consumption
 
+### Deferrable Load Control
+**NEW**: Intelligent control of non-critical loads based on price and historical patterns:
+- **Price Threshold Control**: Automatically switch off deferrable loads when prices exceed threshold
+- **Busy Hour Detection**: Analyze historical data to identify high-price periods
+- **Load Classification**: Mark appliances as deferrable (EV chargers, decorative lights) or critical (HVAC, essential lighting)
+- **Day-Ahead Recommendations**: Generate 24-hour schedule for deferrable load operation
+- **State Management**: Intelligently resume loads when conditions improve
+- **Cost Savings**: Achieve 10-20% reduction in energy costs without compromising comfort
+
+### Continuous ML Training
+**NEW**: System continuously learns and improves from operational data:
+- **Automatic Data Collection**: Continuously collect temperature, solar, and energy cost data
+- **Scheduled Retraining**: Automatically retrain ML model on configurable schedule (default: daily)
+- **Data Persistence**: Historical data saved to file and survives system restarts
+- **Retention Management**: Automatic cleanup of old data (configurable, default: 90 days)
+- **Adaptive Learning**: Model improves over time by learning from actual usage patterns
+- **No Manual Intervention**: Fully automatic operation with minimal configuration
+
 ## Architecture
 
 ### Event-Driven Design
@@ -53,17 +71,20 @@ The energy optimizer minimizes energy consumption while maintaining user comfort
 ### Modular Structure
 ```
 include/
-├── Event.h                    - Event data structure
-├── EventManager.h             - Event distribution system
-├── Sensor.h                   - Base sensor class
-├── Appliance.h                - Base appliance class
-├── MQTTClient.h               - MQTT communication
-├── HAIntegration.h            - Home Assistant MQTT integration
-├── HTTPClient.h               - HTTP API client
-├── EnergyOptimizer.h          - Real-time decision-making logic
-├── MLPredictor.h              - ML-based forecasting engine
-├── DayAheadOptimizer.h        - Predictive scheduling optimizer
-├── HistoricalDataGenerator.h - Training data generation
+├── Event.h                      - Event data structure
+├── EventManager.h               - Event distribution system
+├── Sensor.h                     - Base sensor class
+├── Appliance.h                  - Base appliance class (with deferrable support)
+├── MQTTClient.h                 - MQTT communication
+├── HAIntegration.h              - Home Assistant MQTT integration
+├── HTTPClient.h                 - HTTP API client
+├── EnergyOptimizer.h            - Real-time decision-making logic
+├── MLPredictor.h                - ML-based forecasting engine
+├── DayAheadOptimizer.h          - Predictive scheduling optimizer
+├── DeferrableLoadController.h   - Deferrable load management
+├── HistoricalDataCollector.h   - Continuous data collection
+├── MLTrainingScheduler.h        - Automatic ML retraining
+├── HistoricalDataGenerator.h   - Training data generation
 ├── Sensors/
 │   ├── TemperatureSensor.h
 │   ├── EnergyMeter.h
@@ -256,10 +277,39 @@ The system includes comprehensive REST API support for extracting sensor data:
 - Includes connection testing, sensor queries, historical data retrieval, and service calls
 - See [examples/README.md](examples/README.md) for build instructions
 
+### Deferrable Load Control
+
+The system includes intelligent control of non-critical loads based on energy prices:
+
+**[DEFERRABLE_LOAD_CONTROL.md](DEFERRABLE_LOAD_CONTROL.md)** - Complete deferrable load control guide:
+- How to classify loads as deferrable or non-deferrable
+- Price threshold-based automatic control
+- Historical data analysis for busy hour identification
+- Day-ahead recommendations for load scheduling
+- Integration with ML-based day-ahead optimizer
+- API reference and usage examples
+- Production deployment guidelines
+- Cost savings analysis and benefits
+
+### Continuous ML Training
+
+The system supports continuous learning from operational data:
+
+**[CONTINUOUS_TRAINING.md](CONTINUOUS_TRAINING.md)** - Continuous ML training guide:
+- How to continuously update historical data during operation
+- Automatic ML predictor retraining on schedule
+- Data persistence and retention management
+- Real-time data collection from sensors
+- Configuration options and best practices
+- Integration examples with existing components
+- API reference for HistoricalDataCollector and MLTrainingScheduler
+- Complete test program demonstrating all features
+
 **Use Cases:**
 - **REST API**: Initial state synchronization, historical data, one-time queries
 - **MQTT**: Real-time updates, event-driven automation, efficient continuous monitoring
-- **Recommendation**: Use both for a robust system!
+- **Continuous Training**: Model improvement over time, adaptation to usage patterns
+- **Recommendation**: Use all three for a robust, learning system!
 
 ## License
 
