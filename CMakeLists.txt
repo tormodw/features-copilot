@@ -35,6 +35,8 @@ add_executable(home_automation
     src/DeferrableLoadController.cpp
     src/HistoricalDataCollector.cpp
     src/MLTrainingScheduler.cpp
+    src/Config.cpp
+    src/ConfigWebServer.cpp
 )
 
 # Add test executable for deferrable loads
@@ -60,6 +62,16 @@ add_executable(test_continuous_training
     src/MLTrainingScheduler.cpp
 )
 
+# Add test executable for configuration system
+add_executable(test_config
+    src/test_config.cpp
+    src/Config.cpp
+    src/ConfigWebServer.cpp
+)
+
+# Link pthread for test_config
+target_link_libraries(test_config Threads::Threads)
+
 # Find mosquitto library (optional - using mock implementation)
 find_library(MOSQUITTO_LIB mosquitto)
 
@@ -82,6 +94,10 @@ endif()
 
 # Include directories
 target_include_directories(home_automation PRIVATE include)
+
+# Link pthread for web server threading
+find_package(Threads REQUIRED)
+target_link_libraries(home_automation Threads::Threads)
 
 # Enable warnings
 if(MSVC)
