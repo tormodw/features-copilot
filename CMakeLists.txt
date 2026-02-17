@@ -8,6 +8,37 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Include directories
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
+# Add production executable
+add_executable(home_automation_production
+    src/main_production.cpp
+    src/Appliance.cpp
+    src/Light.cpp
+    src/Heater.cpp
+    src/AirConditioner.cpp
+    src/Curtain.cpp
+    src/EVCharger.cpp
+    src/Sensor.cpp
+    src/TemperatureSensor.cpp
+    src/EnergyMeter.cpp
+    src/SolarSensor.cpp
+    src/EVChargerSensor.cpp
+    src/Event.cpp
+    src/EventManager.cpp
+    src/MQTTClient.cpp
+    src/HTTPClient.cpp
+    src/EnergyOptimizer.cpp
+    src/MLPredictor.cpp
+    src/DayAheadOptimizer.cpp
+    src/HistoricalDataGenerator.cpp
+    src/HAIntegration.cpp
+    src/DeferrableLoadController.cpp
+    src/HistoricalDataCollector.cpp
+    src/MLTrainingScheduler.cpp
+    src/Config.cpp
+    src/ConfigWebServer.cpp
+    src/SystemWebService.cpp
+)
+
 # Add executable
 add_executable(home_automation
     src/main.cpp
@@ -94,10 +125,12 @@ endif()
 
 # Include directories
 target_include_directories(home_automation PRIVATE include)
+target_include_directories(home_automation_production PRIVATE include)
 
 # Link pthread for web server threading
 find_package(Threads REQUIRED)
 target_link_libraries(home_automation Threads::Threads)
+target_link_libraries(home_automation_production Threads::Threads)
 
 # Enable warnings
 if(MSVC)
@@ -107,5 +140,5 @@ else()
 endif()
 
 # Installation rules
-install(TARGETS home_automation DESTINATION bin)
+install(TARGETS home_automation home_automation_production DESTINATION bin)
 install(DIRECTORY include/ DESTINATION include/home_automation)
