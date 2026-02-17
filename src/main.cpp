@@ -90,7 +90,9 @@ int main() {
         haIntegration = std::make_shared<HAIntegration>(mqttClient);
     } else {
         std::cout << "⚠ MQTT is disabled in configuration - skipping MQTT integration" << std::endl;
-        std::cout << "  Enable MQTT via the web interface at " << webServer->getServerUrl() << std::endl;
+        if (webServer && webServer->isRunning()) {
+            std::cout << "  Enable MQTT via the web interface at " << webServer->getServerUrl() << std::endl;
+        }
         // Use mock client for demo purposes when MQTT is disabled
         mqttClient = std::make_shared<MQTTClient>("localhost", 1883);
         mqttClient->connect();

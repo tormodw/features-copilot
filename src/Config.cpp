@@ -241,7 +241,13 @@ bool Config::fromJson(const std::string& json) {
                 // Trim whitespace
                 portStr.erase(0, portStr.find_first_not_of(" \t\n\r"));
                 portStr.erase(portStr.find_last_not_of(" \t\n\r") + 1);
-                mqttPort_ = std::stoi(portStr);
+                try {
+                    mqttPort_ = std::stoi(portStr);
+                } catch (const std::invalid_argument& e) {
+                    std::cerr << "Invalid MQTT port value in JSON: " << portStr << std::endl;
+                } catch (const std::out_of_range& e) {
+                    std::cerr << "MQTT port value out of range in JSON: " << portStr << std::endl;
+                }
             }
         }
         
@@ -315,7 +321,13 @@ bool Config::fromJson(const std::string& json) {
                     // Trim whitespace
                     portStr.erase(0, portStr.find_first_not_of(" \t\n\r"));
                     portStr.erase(portStr.find_last_not_of(" \t\n\r") + 1);
-                    webInterfacePort_ = std::stoi(portStr);
+                    try {
+                        webInterfacePort_ = std::stoi(portStr);
+                    } catch (const std::invalid_argument& e) {
+                        std::cerr << "Invalid web interface port value in JSON: " << portStr << std::endl;
+                    } catch (const std::out_of_range& e) {
+                        std::cerr << "Web interface port value out of range in JSON: " << portStr << std::endl;
+                    }
                 }
             }
         }

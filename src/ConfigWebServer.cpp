@@ -589,11 +589,24 @@ std::string ConfigWebServer::generateConfigPage() {
                 config.deferrableLoads.forEach((load, index) => {
                     const item = document.createElement('div');
                     item.className = 'list-item';
-                    item.innerHTML = '<span>' + load + '</span><button onclick="removeDeferrableLoad(' + index + ')">Remove</button>';
+                    
+                    const span = document.createElement('span');
+                    span.textContent = load;  // Use textContent to prevent XSS
+                    item.appendChild(span);
+                    
+                    const button = document.createElement('button');
+                    button.textContent = 'Remove';
+                    button.onclick = () => removeDeferrableLoad(index);
+                    item.appendChild(button);
+                    
                     list.appendChild(item);
                 });
             } else {
-                list.innerHTML = '<p style="color: #999; padding: 10px;">No deferrable loads configured</p>';
+                const p = document.createElement('p');
+                p.style.color = '#999';
+                p.style.padding = '10px';
+                p.textContent = 'No deferrable loads configured';
+                list.appendChild(p);
             }
         }
         
@@ -605,11 +618,24 @@ std::string ConfigWebServer::generateConfigPage() {
                 config.sensors.forEach((sensor, index) => {
                     const item = document.createElement('div');
                     item.className = 'list-item';
-                    item.innerHTML = '<span>' + sensor + '</span><button onclick="removeSensor(' + index + ')">Remove</button>';
+                    
+                    const span = document.createElement('span');
+                    span.textContent = sensor;  // Use textContent to prevent XSS
+                    item.appendChild(span);
+                    
+                    const button = document.createElement('button');
+                    button.textContent = 'Remove';
+                    button.onclick = () => removeSensor(index);
+                    item.appendChild(button);
+                    
                     list.appendChild(item);
                 });
             } else {
-                list.innerHTML = '<p style="color: #999; padding: 10px;">No sensors configured</p>';
+                const p = document.createElement('p');
+                p.style.color = '#999';
+                p.style.padding = '10px';
+                p.textContent = 'No sensors configured';
+                list.appendChild(p);
             }
         }
         
