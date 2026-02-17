@@ -488,16 +488,16 @@ std::string ConfigWebServer::generateConfigPage() {
                 </div>
             </div>
             
-            <!-- Deferrable Loads Configuration -->
+            <!-- Appliances Configuration -->
             <div class="section">
-                <h2>Deferrable Loads</h2>
+                <h2>⚙️ Appliances</h2>
                 <div class="form-group">
-                    <label>Configured Loads</label>
+                    <label>Configured Appliances</label>
                     <div class="list-container">
-                        <div id="deferrableLoadsList"></div>
+                        <div id="appliancesList"></div>
                         <div class="add-item-group">
-                            <input type="text" id="newDeferrableLoad" placeholder="Enter load name (e.g., EV Charger)">
-                            <button class="btn btn-secondary" onclick="addDeferrableLoad()">Add</button>
+                            <input type="text" id="newAppliance" placeholder="Enter appliance name (e.g., EV Charger)">
+                            <button class="btn btn-secondary" onclick="addAppliance()">Add</button>
                         </div>
                     </div>
                 </div>
@@ -572,7 +572,15 @@ std::string ConfigWebServer::generateConfigPage() {
                 document.getElementById('webEnabled').checked = config.webInterface.enabled;
                 document.getElementById('webPort').value = config.webInterface.port;
                 
-                updateDeferrableLoadsList();
+                // Convert old format to new format if needed
+                if (config.deferrableLoads && !config.appliances) {
+                    config.appliances = config.deferrableLoads.map(name => ({
+                        name: name,
+                        isDeferrable: true
+                    }));
+                }
+                
+                updateAppliancesList();
                 updateSensorsList();
                 
                 showMessage('Configuration loaded successfully');
@@ -581,22 +589,43 @@ std::string ConfigWebServer::generateConfigPage() {
             }
         }
         
-        function updateDeferrableLoadsList() {
-            const list = document.getElementById('deferrableLoadsList');
+        function updateAppliancesList() {
+            const list = document.getElementById('appliancesList');
             list.innerHTML = '';
             
-            if (config.deferrableLoads && config.deferrableLoads.length > 0) {
-                config.deferrableLoads.forEach((load, index) => {
+            if (config.appliances && config.appliances.length > 0) {
+                config.appliances.forEach((appliance, index) => {
                     const item = document.createElement('div');
                     item.className = 'list-item';
+                    item.style.display = 'flex';
+                    item.style.alignItems = 'center';
+                    item.style.gap = '10px';
                     
+                    // Checkbox for deferrable status
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = appliance.isDeferrable;
+                    checkbox.onchange = () => toggleApplianceDeferrable(index);
+                    checkbox.style.cursor = 'pointer';
+                    item.appendChild(checkbox);
+                    
+                    // Appliance name
                     const span = document.createElement('span');
-                    span.textContent = load;  // Use textContent to prevent XSS
+                    span.textContent = appliance.name;
+                    span.style.flex = '1';
                     item.appendChild(span);
                     
+                    // Deferrable label
+                    const label = document.createElement('span');
+                    label.textContent = appliance.isDeferrable ? '(Deferrable)' : '(Not Deferrable)';
+                    label.style.fontSize = '0.9em';
+                    label.style.color = appliance.isDeferrable ? '#10b981' : '#6b7280';
+                    item.appendChild(label);
+                    
+                    // Remove button
                     const button = document.createElement('button');
                     button.textContent = 'Remove';
-                    button.onclick = () => removeDeferrableLoad(index);
+                    button.onclick = () => removeAppliance(index);
                     item.appendChild(button);
                     
                     list.appendChild(item);
@@ -605,7 +634,7 @@ std::string ConfigWebServer::generateConfigPage() {
                 const p = document.createElement('p');
                 p.style.color = '#999';
                 p.style.padding = '10px';
-                p.textContent = 'No deferrable loads configured';
+                p.textContent = 'No appliances configured';
                 list.appendChild(p);
             }
         }
@@ -639,31 +668,43 @@ std::string ConfigWebServer::generateConfigPage() {
             }
         }
         
-        function addDeferrableLoad() {
-            const input = document.getElementById('newDeferrableLoad');
+        function addAppliance() {
+            const input = document.getElementById('newAppliance');
             const value = input.value.trim();
             
             if (value) {
-                if (!config.deferrableLoads) {
-                    config.deferrableLoads = [];
+                if (!config.appliances) {
+                    config.appliances = [];
                 }
                 
-                if (!config.deferrableLoads.includes(value)) {
-                    config.deferrableLoads.push(value);
-                    updateDeferrableLoadsList();
+                // Check if appliance already exists
+                const exists = config.appliances.some(a => a.name === value);
+                if (!exists) {
+                    config.appliances.push({
+                        name: value,
+                        isDeferrable: false  // Default to not deferrable
+                    });
+                    updateAppliancesList();
                     input.value = '';
-                    showMessage('Deferrable load added: ' + value);
+                    showMessage('Appliance added: ' + value);
                 } else {
-                    showMessage('This load is already in the list', true);
+                    showMessage('This appliance is already in the list', true);
                 }
             }
         }
         
-        function removeDeferrableLoad(index) {
-            const removed = config.deferrableLoads[index];
-            config.deferrableLoads.splice(index, 1);
-            updateDeferrableLoadsList();
-            showMessage('Removed deferrable load: ' + removed);
+        function removeAppliance(index) {
+            const removed = config.appliances[index];
+            config.appliances.splice(index, 1);
+            updateAppliancesList();
+            showMessage('Removed appliance: ' + removed.name);
+        }
+        
+        function toggleApplianceDeferrable(index) {
+            config.appliances[index].isDeferrable = !config.appliances[index].isDeferrable;
+            updateAppliancesList();
+            const status = config.appliances[index].isDeferrable ? 'deferrable' : 'not deferrable';
+            showMessage(config.appliances[index].name + ' is now ' + status);
         }
         
         function addSensor() {

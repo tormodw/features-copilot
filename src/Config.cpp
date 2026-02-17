@@ -12,38 +12,90 @@ Config::Config()
     , webInterfacePort_(8080) {
 }
 
-// Deferrable loads configuration
-void Config::setDeferrableLoadCount(int count) {
-    // Resize the vector to match the count
+// Appliances configuration
+void Config::setApplianceCount(int count) {
     if (count < 0) count = 0;
-    deferrableLoadNames_.resize(count);
+    appliances_.resize(count);
 }
 
-int Config::getDeferrableLoadCount() const {
-    return static_cast<int>(deferrableLoadNames_.size());
+int Config::getApplianceCount() const {
+    return static_cast<int>(appliances_.size());
 }
 
-void Config::setDeferrableLoadNames(const std::vector<std::string>& names) {
-    deferrableLoadNames_ = names;
+void Config::setAppliances(const std::vector<ApplianceConfig>& appliances) {
+    appliances_ = appliances;
 }
 
-std::vector<std::string> Config::getDeferrableLoadNames() const {
-    return deferrableLoadNames_;
+std::vector<ApplianceConfig> Config::getAppliances() const {
+    return appliances_;
 }
 
-void Config::addDeferrableLoad(const std::string& name) {
+void Config::addAppliance(const std::string& name, bool isDeferrable) {
     // Only add if not already present
-    if (std::find(deferrableLoadNames_.begin(), deferrableLoadNames_.end(), name) 
-        == deferrableLoadNames_.end()) {
-        deferrableLoadNames_.push_back(name);
+    for (const auto& appliance : appliances_) {
+        if (appliance.name == name) {
+            return;  // Already exists
+        }
+    }
+    appliances_.push_back(ApplianceConfig(name, isDeferrable));
+}
+
+void Config::removeAppliance(const std::string& name) {
+    appliances_.erase(
+        std::remove_if(appliances_.begin(), appliances_.end(),
+            [&name](const ApplianceConfig& a) { return a.name == name; }),
+        appliances_.end()
+    );
+}
+
+void Config::setApplianceDeferrable(const std::string& name, bool isDeferrable) {
+    for (auto& appliance : appliances_) {
+        if (appliance.name == name) {
+            appliance.isDeferrable = isDeferrable;
+            return;
+        }
     }
 }
 
+// Legacy methods for backward compatibility
+void Config::setDeferrableLoadCount(int count) {
+    setApplianceCount(count);
+}
+
+int Config::getDeferrableLoadCount() const {
+    // Count only deferrable appliances
+    int count = 0;
+    for (const auto& appliance : appliances_) {
+        if (appliance.isDeferrable) {
+            count++;
+        }
+    }
+    return count;
+}
+
+void Config::setDeferrableLoadNames(const std::vector<std::string>& names) {
+    appliances_.clear();
+    for (const auto& name : names) {
+        appliances_.push_back(ApplianceConfig(name, true));
+    }
+}
+
+std::vector<std::string> Config::getDeferrableLoadNames() const {
+    std::vector<std::string> names;
+    for (const auto& appliance : appliances_) {
+        if (appliance.isDeferrable) {
+            names.push_back(appliance.name);
+        }
+    }
+    return names;
+}
+
+void Config::addDeferrableLoad(const std::string& name) {
+    addAppliance(name, true);
+}
+
 void Config::removeDeferrableLoad(const std::string& name) {
-    deferrableLoadNames_.erase(
-        std::remove(deferrableLoadNames_.begin(), deferrableLoadNames_.end(), name),
-        deferrableLoadNames_.end()
-    );
+    removeAppliance(name);
 }
 
 // MQTT configuration
@@ -168,11 +220,14 @@ std::string Config::toJson() const {
     json << "    \"port\": " << mqttPort_ << "\n";
     json << "  },\n";
     
-    // Deferrable loads
-    json << "  \"deferrableLoads\": [\n";
-    for (size_t i = 0; i < deferrableLoadNames_.size(); ++i) {
-        json << "    \"" << escapeJsonString(deferrableLoadNames_[i]) << "\"";
-        if (i < deferrableLoadNames_.size() - 1) {
+    // Appliances
+    json << "  \"appliances\": [\n";
+    for (size_t i = 0; i < appliances_.size(); ++i) {
+        json << "    {\n";
+        json << "      \"name\": \"" << escapeJsonString(appliances_[i].name) << "\",\n";
+        json << "      \"isDeferrable\": " << (appliances_[i].isDeferrable ? "true" : "false") << "\n";
+        json << "    }";
+        if (i < appliances_.size() - 1) {
             json << ",";
         }
         json << "\n";
@@ -251,10 +306,59 @@ bool Config::fromJson(const std::string& json) {
             }
         }
         
-        // Parse deferrable loads array
-        deferrableLoadNames_.clear();
+        // Parse appliances array (new format)
+        appliances_.clear();
+        size_t appliancesPos = json.find("\"appliances\"");
+        if (appliancesPos != std::string::npos) {
+            size_t arrayStart = json.find("[", appliancesPos);
+            size_t arrayEnd = json.find("]", arrayStart);
+            if (arrayStart != std::string::npos && arrayEnd != std::string::npos) {
+                std::string arrayContent = json.substr(arrayStart + 1, arrayEnd - arrayStart - 1);
+                size_t pos = 0;
+                
+                // Find each object in the array
+                while ((pos = arrayContent.find("{", pos)) != std::string::npos) {
+                    size_t objEnd = arrayContent.find("}", pos);
+                    if (objEnd == std::string::npos) break;
+                    
+                    std::string objContent = arrayContent.substr(pos + 1, objEnd - pos - 1);
+                    
+                    // Parse name
+                    size_t namePos = objContent.find("\"name\"");
+                    std::string name;
+                    if (namePos != std::string::npos) {
+                        size_t colonPos = objContent.find(":", namePos);
+                        size_t firstQuote = objContent.find("\"", colonPos);
+                        size_t secondQuote = objContent.find("\"", firstQuote + 1);
+                        if (firstQuote != std::string::npos && secondQuote != std::string::npos) {
+                            name = objContent.substr(firstQuote + 1, secondQuote - firstQuote - 1);
+                        }
+                    }
+                    
+                    // Parse isDeferrable
+                    bool isDeferrable = false;
+                    size_t deferrablePos = objContent.find("\"isDeferrable\"");
+                    if (deferrablePos != std::string::npos) {
+                        size_t truePos = objContent.find("true", deferrablePos);
+                        size_t falsePos = objContent.find("false", deferrablePos);
+                        if (truePos != std::string::npos && truePos < objContent.length()) {
+                            isDeferrable = true;
+                        }
+                    }
+                    
+                    if (!name.empty()) {
+                        appliances_.push_back(ApplianceConfig(unescapeJsonString(name), isDeferrable));
+                    }
+                    
+                    pos = objEnd + 1;
+                }
+            }
+        }
+        
+        // Backward compatibility: Parse old deferrableLoads array
         size_t deferrablePos = json.find("\"deferrableLoads\"");
-        if (deferrablePos != std::string::npos) {
+        if (deferrablePos != std::string::npos && appliancesPos == std::string::npos) {
+            // Only use old format if new format doesn't exist
             size_t arrayStart = json.find("[", deferrablePos);
             size_t arrayEnd = json.find("]", arrayStart);
             if (arrayStart != std::string::npos && arrayEnd != std::string::npos) {
@@ -264,7 +368,7 @@ bool Config::fromJson(const std::string& json) {
                     size_t endQuote = arrayContent.find("\"", pos + 1);
                     if (endQuote != std::string::npos) {
                         std::string name = arrayContent.substr(pos + 1, endQuote - pos - 1);
-                        deferrableLoadNames_.push_back(unescapeJsonString(name));
+                        appliances_.push_back(ApplianceConfig(unescapeJsonString(name), true));
                         pos = endQuote + 1;
                     } else {
                         break;

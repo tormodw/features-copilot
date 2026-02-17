@@ -5,18 +5,36 @@
 #include <vector>
 #include <map>
 
+// Appliance configuration structure
+struct ApplianceConfig {
+    std::string name;
+    bool isDeferrable;
+    
+    ApplianceConfig() : name(""), isDeferrable(false) {}
+    ApplianceConfig(const std::string& n, bool defer = false) : name(n), isDeferrable(defer) {}
+};
+
 // Configuration class for the home automation system
 class Config {
 public:
     Config();
     
-    // Deferrable loads configuration
+    // Appliances configuration (formerly deferrable loads)
+    void setApplianceCount(int count);
+    int getApplianceCount() const;
+    
+    void setAppliances(const std::vector<ApplianceConfig>& appliances);
+    std::vector<ApplianceConfig> getAppliances() const;
+    
+    void addAppliance(const std::string& name, bool isDeferrable = false);
+    void removeAppliance(const std::string& name);
+    void setApplianceDeferrable(const std::string& name, bool isDeferrable);
+    
+    // Legacy methods for backward compatibility
     void setDeferrableLoadCount(int count);
     int getDeferrableLoadCount() const;
-    
     void setDeferrableLoadNames(const std::vector<std::string>& names);
     std::vector<std::string> getDeferrableLoadNames() const;
-    
     void addDeferrableLoad(const std::string& name);
     void removeDeferrableLoad(const std::string& name);
     
@@ -56,8 +74,8 @@ public:
     static Config getDefaultConfig();
 
 private:
-    // Deferrable loads
-    std::vector<std::string> deferrableLoadNames_;
+    // Appliances (with deferrable status)
+    std::vector<ApplianceConfig> appliances_;
     
     // MQTT settings
     bool mqttEnabled_;
