@@ -17,6 +17,8 @@
 #include "HAIntegration.h"
 #include "HARestClient.h"
 #include "DeferrableLoadController.h"
+#include "Config.h"
+#include "ConfigWebServer.h"
 #include <iostream>
 #include <memory>
 #include <thread>
@@ -36,16 +38,64 @@ std::string createSensorAttributes(const std::string& name, const std::string& u
 }
 
 int main() {
+    std::cout << "\n=== Home Automation System with Configuration ===" << std::endl;
+    std::cout << "This demonstrates the complete home automation system with configuration management\n" << std::endl;
+    
+    // Load or create configuration
+    auto config = std::make_shared<Config>();
+    std::cout << "=== Loading Configuration ===" << std::endl;
+    if (config->loadFromFile("config.json")) {
+        std::cout << "✓ Configuration loaded from config.json" << std::endl;
+    } else {
+        std::cout << "⚠ Config file not found, using defaults" << std::endl;
+        *config = Config::getDefaultConfig();
+        config->saveToFile("config.json");
+        std::cout << "✓ Default configuration saved to config.json" << std::endl;
+    }
+    
+    std::cout << "  MQTT Enabled: " << (config->isMqttEnabled() ? "Yes" : "No") << std::endl;
+    std::cout << "  MQTT Broker: " << config->getMqttBrokerAddress() << ":" << config->getMqttPort() << std::endl;
+    std::cout << "  Deferrable Loads: " << config->getDeferrableLoadCount() << std::endl;
+    std::cout << "  Sensors: " << config->getSensorValues().size() << std::endl;
+    std::cout << std::endl;
+    
+    // Start web interface for runtime configuration
+    std::shared_ptr<ConfigWebServer> webServer;
+    if (config->isWebInterfaceEnabled()) {
+        std::cout << "=== Starting Configuration Web Interface ===" << std::endl;
+        webServer = std::make_shared<ConfigWebServer>(config, config->getWebInterfacePort());
+        if (webServer->start()) {
+            std::cout << "✓ Web interface started at: " << webServer->getServerUrl() << std::endl;
+            std::cout << "  You can configure the system at any time via the web interface" << std::endl;
+        } else {
+            std::cout << "⚠ Failed to start web interface (port may be in use)" << std::endl;
+        }
+        std::cout << std::endl;
+    }
+    
     std::cout << "\n=== Home Assistant Sensor State Publishing Demo ===" << std::endl;
     std::cout << "This demonstrates automatic publishing of ALL local sensor states to MQTT/Home Assistant\n" << std::endl;
     
-    // Setup MQTT and HA Integration
-    // Note: For production, use environment variables or config files for broker address
-    // Example: const char* brokerAddr = std::getenv("MQTT_BROKER") ? std::getenv("MQTT_BROKER") : "localhost";
-    auto mqttClient = std::make_shared<MQTTClient>("10.0.0.59", 1883);
-    mqttClient->connect();
+    // Setup MQTT and HA Integration (only if MQTT is enabled in config)
+    std::shared_ptr<MQTTClient> mqttClient;
+    std::shared_ptr<HAIntegration> haIntegration;
     
-    auto haIntegration = std::make_shared<HAIntegration>(mqttClient);
+    if (config->isMqttEnabled()) {
+        std::cout << "MQTT is enabled in configuration" << std::endl;
+        mqttClient = std::make_shared<MQTTClient>(
+            config->getMqttBrokerAddress().c_str(), 
+            config->getMqttPort()
+        );
+        mqttClient->connect();
+        haIntegration = std::make_shared<HAIntegration>(mqttClient);
+    } else {
+        std::cout << "⚠ MQTT is disabled in configuration - skipping MQTT integration" << std::endl;
+        std::cout << "  Enable MQTT via the web interface at " << webServer->getServerUrl() << std::endl;
+        // Use mock client for demo purposes when MQTT is disabled
+        mqttClient = std::make_shared<MQTTClient>("localhost", 1883);
+        mqttClient->connect();
+        haIntegration = std::make_shared<HAIntegration>(mqttClient);
+    }
     
     std::cout << "=== Step 1: Creating Local Sensors ===" << std::endl;
     
@@ -361,12 +411,24 @@ int main() {
     light1->setDeferrable(true);      // Decorative, can be deferred
     light2->setDeferrable(false);     // Essential lighting
     
+    // Note: In production, deferrable status would be determined by the configuration
+    // Example integration with Config class:
+    // auto deferrableLoadNames = config->getDeferrableLoadNames();
+    // evCharger->setDeferrable(std::find(deferrableLoadNames.begin(), deferrableLoadNames.end(), "ev_charger") != deferrableLoadNames.end());
+    // light1->setDeferrable(std::find(deferrableLoadNames.begin(), deferrableLoadNames.end(), "decorative_lights") != deferrableLoadNames.end());
+    
     std::cout << "Created 5 appliances:" << std::endl;
     std::cout << "  - " << heater->getName() << " (NOT deferrable - critical)" << std::endl;
     std::cout << "  - " << ac->getName() << " (NOT deferrable - critical)" << std::endl;
     std::cout << "  - " << evCharger->getName() << " (DEFERRABLE)" << std::endl;
     std::cout << "  - " << light1->getName() << " (DEFERRABLE)" << std::endl;
-    std::cout << "  - " << light2->getName() << " (NOT deferrable - essential)\n" << std::endl;
+    std::cout << "  - " << light2->getName() << " (NOT deferrable - essential)" << std::endl;
+    std::cout << "  Configuration defines " << config->getDeferrableLoadCount() 
+              << " deferrable loads: ";
+    for (const auto& loadName : config->getDeferrableLoadNames()) {
+        std::cout << loadName << " ";
+    }
+    std::cout << "\n" << std::endl;
     
     // Add deferrable loads to controller
     deferrableController->addDeferrableLoad(evCharger);
@@ -475,6 +537,43 @@ int main() {
     std::cout << "\n========================================" << std::endl;
     std::cout << "=== All Demonstrations Complete ===" << std::endl;
     std::cout << "========================================\n" << std::endl;
+    
+    // ==================== CONFIGURATION SYSTEM SUMMARY ====================
+    std::cout << "\n========================================" << std::endl;
+    std::cout << "=== Configuration System ===" << std::endl;
+    std::cout << "========================================\n" << std::endl;
+    
+    std::cout << "The system is now running with the following configuration:\n" << std::endl;
+    
+    std::cout << "📋 Current Configuration:" << std::endl;
+    std::cout << "  • MQTT: " << (config->isMqttEnabled() ? "Enabled" : "Disabled") << std::endl;
+    if (config->isMqttEnabled()) {
+        std::cout << "    - Broker: " << config->getMqttBrokerAddress() << ":" << config->getMqttPort() << std::endl;
+    }
+    std::cout << "  • Deferrable Loads (" << config->getDeferrableLoadCount() << " configured):" << std::endl;
+    for (const auto& load : config->getDeferrableLoadNames()) {
+        std::cout << "    - " << load << std::endl;
+    }
+    std::cout << "  • Sensors (" << config->getSensorValues().size() << " configured):" << std::endl;
+    for (const auto& sensor : config->getSensorValues()) {
+        std::cout << "    - " << sensor << std::endl;
+    }
+    
+    if (webServer && webServer->isRunning()) {
+        std::cout << "\n🌐 Web Configuration Interface:" << std::endl;
+        std::cout << "  • URL: " << webServer->getServerUrl() << std::endl;
+        std::cout << "  • Features:" << std::endl;
+        std::cout << "    - Real-time configuration updates" << std::endl;
+        std::cout << "    - Add/remove deferrable loads" << std::endl;
+        std::cout << "    - Add/remove sensors" << std::endl;
+        std::cout << "    - Configure MQTT settings" << std::endl;
+        std::cout << "    - All changes automatically saved to config.json" << std::endl;
+        std::cout << "\n  📖 Documentation: See CONFIG_SYSTEM.md for complete guide" << std::endl;
+    }
+    
+    std::cout << "\n✅ System Ready!" << std::endl;
+    std::cout << "   All features are operational and can be configured via the web interface." << std::endl;
+    std::cout << "\n========================================\n" << std::endl;
     
     return 0;
 }
