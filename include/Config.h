@@ -62,6 +62,13 @@ public:
     void setWebInterfacePort(int port);
     int getWebInterfacePort() const;
     
+    // REST API configuration
+    void setRestApiEnabled(bool enabled);
+    bool isRestApiEnabled() const;
+    
+    void setRestApiPort(int port);
+    int getRestApiPort() const;
+    
     // Persistence
     bool loadFromFile(const std::string& filename = "config.json");
     bool saveToFile(const std::string& filename = "config.json") const;
@@ -88,6 +95,10 @@ private:
     // Web interface settings
     bool webInterfaceEnabled_;
     int webInterfacePort_;
+    
+    // REST API settings
+    bool restApiEnabled_;
+    int restApiPort_;
     
     // Helper methods for JSON parsing (simple implementation without external library)
     std::string escapeJsonString(const std::string& str) const;

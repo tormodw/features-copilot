@@ -520,7 +520,7 @@ std::string ConfigWebServer::generateConfigPage() {
             
             <!-- Web Interface Configuration -->
             <div class="section">
-                <h2>Web Interface Settings</h2>
+                <h2>⚙️ Web Interface Settings</h2>
                 <div class="form-group">
                     <div class="checkbox-group">
                         <input type="checkbox" id="webEnabled" checked>
@@ -530,6 +530,21 @@ std::string ConfigWebServer::generateConfigPage() {
                 <div class="form-group">
                     <label for="webPort">Web Interface Port</label>
                     <input type="number" id="webPort" placeholder="8080" value="8080">
+                </div>
+            </div>
+            
+            <!-- REST API Configuration -->
+            <div class="section">
+                <h2>🔌 REST API Settings</h2>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="restApiEnabled" checked>
+                        <label for="restApiEnabled">Enable REST API</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="restApiPort">REST API Port</label>
+                    <input type="number" id="restApiPort" placeholder="8081" value="8081">
                 </div>
             </div>
             
@@ -571,6 +586,16 @@ std::string ConfigWebServer::generateConfigPage() {
                 document.getElementById('mqttPort').value = config.mqtt.port;
                 document.getElementById('webEnabled').checked = config.webInterface.enabled;
                 document.getElementById('webPort').value = config.webInterface.port;
+                
+                // Load REST API settings if present, otherwise use defaults
+                if (config.restApi) {
+                    document.getElementById('restApiEnabled').checked = config.restApi.enabled;
+                    document.getElementById('restApiPort').value = config.restApi.port;
+                } else {
+                    // Default values if not in config
+                    document.getElementById('restApiEnabled').checked = true;
+                    document.getElementById('restApiPort').value = 8081;
+                }
                 
                 // Convert old format to new format if needed
                 if (config.deferrableLoads && !config.appliances) {
@@ -741,6 +766,13 @@ std::string ConfigWebServer::generateConfigPage() {
                 config.mqtt.port = parseInt(document.getElementById('mqttPort').value);
                 config.webInterface.enabled = document.getElementById('webEnabled').checked;
                 config.webInterface.port = parseInt(document.getElementById('webPort').value);
+                
+                // Save REST API settings
+                if (!config.restApi) {
+                    config.restApi = {};
+                }
+                config.restApi.enabled = document.getElementById('restApiEnabled').checked;
+                config.restApi.port = parseInt(document.getElementById('restApiPort').value);
                 
                 const response = await fetch('/api/config', {
                     method: 'POST',

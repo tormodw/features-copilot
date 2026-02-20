@@ -259,8 +259,11 @@ int main(int argc, char* argv[]) {
     // ========== STEP 7: Start System Monitoring Web Service ==========
     std::cout << "🌐 [7/8] Starting System Monitoring & Control Web Service..." << std::endl;
     
+    // Get REST API port from configuration
+    int restApiPort = config->isRestApiEnabled() ? config->getRestApiPort() : 8081;
+    
     systemWebService = std::make_shared<SystemWebService>(
-        config, mlPredictor, dayAheadOptimizer, dataCollector, 8081
+        config, mlPredictor, dayAheadOptimizer, dataCollector, restApiPort
     );
     
     // Register all sensors and appliances with the web service
