@@ -38,15 +38,12 @@ public:
     void addDeferrableLoad(const std::string& name);
     void removeDeferrableLoad(const std::string& name);
     
-    // MQTT configuration
-    void setMqttEnabled(bool enabled);
-    bool isMqttEnabled() const;
+    // REST API configuration (replaces MQTT)
+    void setRestApiUrl(const std::string& url);
+    std::string getRestApiUrl() const;
     
-    void setMqttBrokerAddress(const std::string& address);
-    std::string getMqttBrokerAddress() const;
-    
-    void setMqttPort(int port);
-    int getMqttPort() const;
+    void setRestApiToken(const std::string& token);
+    std::string getRestApiToken() const;
     
     // Sensor configuration
     void setSensorValues(const std::vector<std::string>& sensors);
@@ -84,10 +81,9 @@ private:
     // Appliances (with deferrable status)
     std::vector<ApplianceConfig> appliances_;
     
-    // MQTT settings
-    bool mqttEnabled_;
-    std::string mqttBrokerAddress_;
-    int mqttPort_;
+    // REST API settings (replaces MQTT)
+    std::string restApiUrl_;
+    std::string restApiToken_;
     
     // Sensor settings
     std::vector<std::string> sensorValues_;

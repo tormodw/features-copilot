@@ -5,9 +5,8 @@
 #include <iostream>
 
 Config::Config() 
-    : mqttEnabled_(true)
-    , mqttBrokerAddress_("localhost")
-    , mqttPort_(1883)
+    : restApiUrl_("http://localhost:8123")
+    , restApiToken_("")
     , webInterfaceEnabled_(true)
     , webInterfacePort_(8080)
     , restApiEnabled_(true)
@@ -100,29 +99,21 @@ void Config::removeDeferrableLoad(const std::string& name) {
     removeAppliance(name);
 }
 
-// MQTT configuration
-void Config::setMqttEnabled(bool enabled) {
-    mqttEnabled_ = enabled;
+// REST API configuration (replaces MQTT)
+void Config::setRestApiUrl(const std::string& url) {
+    restApiUrl_ = url;
 }
 
-bool Config::isMqttEnabled() const {
-    return mqttEnabled_;
+std::string Config::getRestApiUrl() const {
+    return restApiUrl_;
 }
 
-void Config::setMqttBrokerAddress(const std::string& address) {
-    mqttBrokerAddress_ = address;
+void Config::setRestApiToken(const std::string& token) {
+    restApiToken_ = token;
 }
 
-std::string Config::getMqttBrokerAddress() const {
-    return mqttBrokerAddress_;
-}
-
-void Config::setMqttPort(int port) {
-    mqttPort_ = port;
-}
-
-int Config::getMqttPort() const {
-    return mqttPort_;
+std::string Config::getRestApiToken() const {
+    return restApiToken_;
 }
 
 // Sensor configuration
@@ -232,11 +223,12 @@ std::string Config::toJson() const {
     std::ostringstream json;
     json << "{\n";
     
-    // MQTT configuration
-    json << "  \"mqtt\": {\n";
-    json << "    \"enabled\": " << (mqttEnabled_ ? "true" : "false") << ",\n";
-    json << "    \"brokerAddress\": \"" << escapeJsonString(mqttBrokerAddress_) << "\",\n";
-    json << "    \"port\": " << mqttPort_ << "\n";
+    // REST API configuration (replaces MQTT)
+    json << "  \"restApi\": {\n";
+    json << "    \"url\": \"" << escapeJsonString(restApiUrl_) << "\",\n";
+    json << "    \"token\": \"" << escapeJsonString(restApiToken_) << "\",\n";
+    json << "    \"enabled\": " << (restApiEnabled_ ? "true" : "false") << ",\n";
+    json << "    \"port\": " << restApiPort_ << "\n";
     json << "  },\n";
     
     // Appliances
@@ -268,12 +260,6 @@ std::string Config::toJson() const {
     json << "  \"webInterface\": {\n";
     json << "    \"enabled\": " << (webInterfaceEnabled_ ? "true" : "false") << ",\n";
     json << "    \"port\": " << webInterfacePort_ << "\n";
-    json << "  },\n";
-    
-    // REST API configuration
-    json << "  \"restApi\": {\n";
-    json << "    \"enabled\": " << (restApiEnabled_ ? "true" : "false") << ",\n";
-    json << "    \"port\": " << restApiPort_ << "\n";
     json << "  }\n";
     
     json << "}";
@@ -286,47 +272,28 @@ bool Config::fromJson(const std::string& json) {
         // Very simple JSON parser - looks for key patterns
         // In production, use a proper JSON library like nlohmann/json
         
-        // Parse MQTT enabled
-        size_t mqttEnabledPos = json.find("\"enabled\"");
-        if (mqttEnabledPos != std::string::npos) {
-            size_t truePos = json.find("true", mqttEnabledPos);
-            size_t falsePos = json.find("false", mqttEnabledPos);
-            size_t commaPos = json.find(",", mqttEnabledPos);
+        // Parse REST API configuration (replaces MQTT)
+        size_t restApiPos = json.find("\"restApi\"");
+        if (restApiPos != std::string::npos) {
+            // Parse REST API URL
+            size_t urlPos = json.find("\"url\"", restApiPos);
+            if (urlPos != std::string::npos) {
+                size_t colonPos = json.find(":", urlPos);
+                size_t firstQuote = json.find("\"", colonPos);
+                size_t secondQuote = json.find("\"", firstQuote + 1);
+                if (firstQuote != std::string::npos && secondQuote != std::string::npos) {
+                    restApiUrl_ = json.substr(firstQuote + 1, secondQuote - firstQuote - 1);
+                }
+            }
             
-            if (truePos != std::string::npos && truePos < commaPos) {
-                mqttEnabled_ = true;
-            } else if (falsePos != std::string::npos && falsePos < commaPos) {
-                mqttEnabled_ = false;
-            }
-        }
-        
-        // Parse broker address
-        size_t brokerPos = json.find("\"brokerAddress\"");
-        if (brokerPos != std::string::npos) {
-            size_t colonPos = json.find(":", brokerPos);
-            size_t firstQuote = json.find("\"", colonPos);
-            size_t secondQuote = json.find("\"", firstQuote + 1);
-            if (firstQuote != std::string::npos && secondQuote != std::string::npos) {
-                mqttBrokerAddress_ = json.substr(firstQuote + 1, secondQuote - firstQuote - 1);
-            }
-        }
-        
-        // Parse port
-        size_t portPos = json.find("\"port\"");
-        if (portPos != std::string::npos) {
-            size_t colonPos = json.find(":", portPos);
-            size_t commaPos = json.find_first_of(",\n}", colonPos);
-            if (colonPos != std::string::npos && commaPos != std::string::npos) {
-                std::string portStr = json.substr(colonPos + 1, commaPos - colonPos - 1);
-                // Trim whitespace
-                portStr.erase(0, portStr.find_first_not_of(" \t\n\r"));
-                portStr.erase(portStr.find_last_not_of(" \t\n\r") + 1);
-                try {
-                    mqttPort_ = std::stoi(portStr);
-                } catch (const std::invalid_argument& e) {
-                    std::cerr << "Invalid MQTT port value in JSON: " << portStr << std::endl;
-                } catch (const std::out_of_range& e) {
-                    std::cerr << "MQTT port value out of range in JSON: " << portStr << std::endl;
+            // Parse REST API token
+            size_t tokenPos = json.find("\"token\"", restApiPos);
+            if (tokenPos != std::string::npos) {
+                size_t colonPos = json.find(":", tokenPos);
+                size_t firstQuote = json.find("\"", colonPos);
+                size_t secondQuote = json.find("\"", firstQuote + 1);
+                if (firstQuote != std::string::npos && secondQuote != std::string::npos) {
+                    restApiToken_ = json.substr(firstQuote + 1, secondQuote - firstQuote - 1);
                 }
             }
         }
@@ -552,10 +519,9 @@ Config Config::getDefaultConfig() {
     config.addSensorValue("solar_production");
     config.addSensorValue("ev_charger_power");
     
-    // MQTT enabled by default
-    config.setMqttEnabled(true);
-    config.setMqttBrokerAddress("localhost");
-    config.setMqttPort(1883);
+    // REST API configuration (replaces MQTT)
+    config.setRestApiUrl("http://localhost:8123");
+    config.setRestApiToken("");
     
     // Web interface enabled by default
     config.setWebInterfaceEnabled(true);

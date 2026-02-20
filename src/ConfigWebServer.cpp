@@ -469,22 +469,16 @@ std::string ConfigWebServer::generateConfigPage() {
                 <p>Changes will be applied to the system immediately.</p>
             </div>
             
-            <!-- MQTT Configuration -->
+            <!-- REST API Configuration (replaces MQTT) -->
             <div class="section">
-                <h2>MQTT Settings</h2>
+                <h2>🔌 REST API Settings</h2>
                 <div class="form-group">
-                    <div class="checkbox-group">
-                        <input type="checkbox" id="mqttEnabled" checked>
-                        <label for="mqttEnabled">Enable MQTT</label>
-                    </div>
+                    <label for="restApiUrl">REST API URL</label>
+                    <input type="text" id="restApiUrl" placeholder="http://localhost:8123" value="http://localhost:8123">
                 </div>
                 <div class="form-group">
-                    <label for="mqttBroker">MQTT Broker Address</label>
-                    <input type="text" id="mqttBroker" placeholder="localhost" value="localhost">
-                </div>
-                <div class="form-group">
-                    <label for="mqttPort">MQTT Port</label>
-                    <input type="number" id="mqttPort" placeholder="1883" value="1883">
+                    <label for="restApiToken">Authentication Token (Optional)</label>
+                    <input type="password" id="restApiToken" placeholder="Bearer token">
                 </div>
             </div>
             
@@ -581,20 +575,26 @@ std::string ConfigWebServer::generateConfigPage() {
                 const response = await fetch('/api/config');
                 config = await response.json();
                 
-                document.getElementById('mqttEnabled').checked = config.mqtt.enabled;
-                document.getElementById('mqttBroker').value = config.mqtt.brokerAddress;
-                document.getElementById('mqttPort').value = config.mqtt.port;
-                document.getElementById('webEnabled').checked = config.webInterface.enabled;
-                document.getElementById('webPort').value = config.webInterface.port;
-                
-                // Load REST API settings if present, otherwise use defaults
+                // Load REST API settings (replaces MQTT)
                 if (config.restApi) {
-                    document.getElementById('restApiEnabled').checked = config.restApi.enabled;
-                    document.getElementById('restApiPort').value = config.restApi.port;
+                    document.getElementById('restApiUrl').value = config.restApi.url || 'http://localhost:8123';
+                    document.getElementById('restApiToken').value = config.restApi.token || '';
+                    
+                    document.getElementById('webEnabled').checked = config.webInterface.enabled;
+                    document.getElementById('webPort').value = config.webInterface.port;
+                    
+                    // Load system REST API settings if present
+                    if (config.restApi.enabled !== undefined) {
+                        document.getElementById('restApiEnabled').checked = config.restApi.enabled;
+                        document.getElementById('restApiPort').value = config.restApi.port;
+                    } else {
+                        document.getElementById('restApiEnabled').checked = true;
+                        document.getElementById('restApiPort').value = 8081;
+                    }
                 } else {
-                    // Default values if not in config
-                    document.getElementById('restApiEnabled').checked = true;
-                    document.getElementById('restApiPort').value = 8081;
+                    // Default values
+                    document.getElementById('restApiUrl').value = 'http://localhost:8123';
+                    document.getElementById('restApiToken').value = '';
                 }
                 
                 // Convert old format to new format if needed
@@ -761,16 +761,16 @@ std::string ConfigWebServer::generateConfigPage() {
         
         async function saveConfig() {
             try {
-                config.mqtt.enabled = document.getElementById('mqttEnabled').checked;
-                config.mqtt.brokerAddress = document.getElementById('mqttBroker').value;
-                config.mqtt.port = parseInt(document.getElementById('mqttPort').value);
-                config.webInterface.enabled = document.getElementById('webEnabled').checked;
-                config.webInterface.port = parseInt(document.getElementById('webPort').value);
-                
-                // Save REST API settings
+                // Save REST API settings (replaces MQTT)
                 if (!config.restApi) {
                     config.restApi = {};
                 }
+                config.restApi.url = document.getElementById('restApiUrl').value;
+                config.restApi.token = document.getElementById('restApiToken').value;
+                
+                // Save web interface and system REST API settings
+                config.webInterface.enabled = document.getElementById('webEnabled').checked;
+                config.webInterface.port = parseInt(document.getElementById('webPort').value);
                 config.restApi.enabled = document.getElementById('restApiEnabled').checked;
                 config.restApi.port = parseInt(document.getElementById('restApiPort').value);
                 

@@ -24,7 +24,7 @@ add_executable(home_automation_production
     src/EVChargerSensor.cpp
     src/Event.cpp
     src/EventManager.cpp
-    src/MQTTClient.cpp
+    src/RestApiClient.cpp
     src/HTTPClient.cpp
     src/EnergyOptimizer.cpp
     src/MLPredictor.cpp
@@ -55,7 +55,7 @@ add_executable(home_automation
     src/EVChargerSensor.cpp
     src/Event.cpp
     src/EventManager.cpp
-    src/MQTTClient.cpp
+    src/RestApiClient.cpp
     src/HTTPClient.cpp
     src/EnergyOptimizer.cpp
     src/MLPredictor.cpp
@@ -106,26 +106,19 @@ target_link_libraries(test_config Threads::Threads)
 # Find mosquitto library (optional - using mock implementation)
 find_library(MOSQUITTO_LIB mosquitto)
 
-# Link mosquitto library if found
-if(MOSQUITTO_LIB)
-    target_link_libraries(home_automation ${MOSQUITTO_LIB})
-    message(STATUS "Mosquitto library found: ${MOSQUITTO_LIB}")
-else()
-    message(STATUS "Mosquitto library not found - using mock MQTT implementation")
-endif()
-
-find_library(CURL_LIB curl)
-# Link curl library if found
-if(CURL_LIB)
-    target_link_libraries(home_automation ${CURL_LIB})
-    message(STATUS "Curl library found: ${CURL_LIB}")
-else()
-    message(STATUS "Curl library not found - using mock CURL implementation")
-endif()
-
 # Include directories
 target_include_directories(home_automation PRIVATE include)
 target_include_directories(home_automation_production PRIVATE include)
+
+# Find and link libcurl (required for REST API)
+find_library(CURL_LIB curl)
+if(CURL_LIB)
+    target_link_libraries(home_automation ${CURL_LIB})
+    target_link_libraries(home_automation_production ${CURL_LIB})
+    message(STATUS "Curl library found: ${CURL_LIB}")
+else()
+    message(FATAL_ERROR "Curl library not found - required for REST API client")
+endif()
 
 # Link pthread for web server threading
 find_package(Threads REQUIRED)
