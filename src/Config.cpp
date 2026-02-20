@@ -428,43 +428,6 @@ bool Config::fromJson(const std::string& json) {
             }
         }
         
-        // Parse REST API configuration
-        size_t restApiPos = json.find("\"restApi\"");
-        if (restApiPos != std::string::npos) {
-            size_t enabledPos = json.find("\"enabled\"", restApiPos);
-            if (enabledPos != std::string::npos) {
-                size_t truePos = json.find("true", enabledPos);
-                size_t falsePos = json.find("false", enabledPos);
-                size_t nextCommaOrBrace = json.find_first_of(",}", enabledPos);
-                
-                if (truePos != std::string::npos && truePos < nextCommaOrBrace) {
-                    restApiEnabled_ = true;
-                } else if (falsePos != std::string::npos && falsePos < nextCommaOrBrace) {
-                    restApiEnabled_ = false;
-                }
-            }
-            
-            // Parse REST API port
-            size_t restApiPortPos = json.find("\"port\"", restApiPos);
-            if (restApiPortPos != std::string::npos) {
-                size_t colonPos = json.find(":", restApiPortPos);
-                size_t nextCommaOrBrace = json.find_first_of(",\n}", colonPos);
-                if (colonPos != std::string::npos && nextCommaOrBrace != std::string::npos) {
-                    std::string portStr = json.substr(colonPos + 1, nextCommaOrBrace - colonPos - 1);
-                    // Trim whitespace
-                    portStr.erase(0, portStr.find_first_not_of(" \t\n\r"));
-                    portStr.erase(portStr.find_last_not_of(" \t\n\r") + 1);
-                    try {
-                        restApiPort_ = std::stoi(portStr);
-                    } catch (const std::invalid_argument& e) {
-                        std::cerr << "Invalid REST API port value in JSON: " << portStr << std::endl;
-                    } catch (const std::out_of_range& e) {
-                        std::cerr << "REST API port value out of range in JSON: " << portStr << std::endl;
-                    }
-                }
-            }
-        }
-        
         return true;
     } catch (const std::exception& e) {
         std::cerr << "Error parsing JSON: " << e.what() << std::endl;

@@ -13,8 +13,8 @@ int main() {
     auto config = std::make_shared<Config>(Config::getDefaultConfig());
     
     std::cout << "=== Step 1: Default Configuration ===" << std::endl;
-    std::cout << "MQTT Enabled: " << (config->isMqttEnabled() ? "Yes" : "No") << std::endl;
-    std::cout << "MQTT Broker: " << config->getMqttBrokerAddress() << ":" << config->getMqttPort() << std::endl;
+    std::cout << "REST API URL: " << config->getRestApiUrl() << std::endl;
+    std::cout << "REST API Token: " << (config->getRestApiToken().empty() ? "(none)" : "***") << std::endl;
     std::cout << "Deferrable Loads: " << config->getDeferrableLoadCount() << std::endl;
     for (const auto& load : config->getDeferrableLoadNames()) {
         std::cout << "  - " << load << std::endl;
@@ -40,10 +40,11 @@ int main() {
     std::cout << "=== Step 4: Modifying Configuration ===" << std::endl;
     config->addDeferrableLoad("dishwasher");
     config->addSensorValue("humidity_sensor");
-    config->setMqttBrokerAddress("192.168.1.100");
+    config->setRestApiUrl("http://homeassistant.local:8123");
+    config->setRestApiToken("my-secret-token");
     std::cout << "Added 'dishwasher' to deferrable loads" << std::endl;
     std::cout << "Added 'humidity_sensor' to sensors" << std::endl;
-    std::cout << "Changed MQTT broker to 192.168.1.100" << std::endl;
+    std::cout << "Changed REST API URL to " << config->getRestApiUrl() << std::endl;
     std::cout << "Total deferrable loads: " << config->getDeferrableLoadCount() << std::endl;
     std::cout << "Total sensors: " << config->getSensorValues().size() << std::endl;
     std::cout << std::endl;
@@ -61,7 +62,7 @@ int main() {
         std::cout << "Open " << webServer->getServerUrl() << " to configure the system." << std::endl;
         std::cout << std::endl;
         std::cout << "Features available in the web interface:" << std::endl;
-        std::cout << "  • Configure MQTT settings (enable/disable, broker address, port)" << std::endl;
+        std::cout << "  • Configure REST API settings (URL, authentication token)" << std::endl;
         std::cout << "  • Manage deferrable loads (add/remove)" << std::endl;
         std::cout << "  • Manage sensor values (add/remove)" << std::endl;
         std::cout << "  • Configure web interface settings" << std::endl;
